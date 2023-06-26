@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" alignment="TOP_CENTER" prefHeight="716.0" prefWidth="847.0" HBox.hgrow="ALWAYS"
+      xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="me.stiller.controller.BarangController">
+    <padding>
+        <Insets left="20.0" right="20.0"/>
+    </padding>
+    <HBox fx:id="formLayout" styleClass="layout-form">
+        <GridPane hgap="20.0" vgap="36.0" HBox.hgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints minWidth="10.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                <ColumnConstraints fillWidth="false" minWidth="10.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <JFXTextField fx:id="iid" editable="false" labelFloat="true" promptText="Enter ID"
+                          GridPane.columnIndex="1"/>
+            <JFXTextField fx:id="iname" labelFloat="true" promptText="Enter name" GridPane.columnIndex="2"/>
+            <JFXComboBox fx:id="iunit" labelFloat="true" maxHeight="Infinity" maxWidth="Infinity"
+                         promptText="Enter unit" styleClass="combobox" GridPane.columnIndex="3"/>
+            <JFXTextField fx:id="iprice" labelFloat="true" promptText="Enter price" GridPane.columnIndex="1"
+                          GridPane.rowIndex="1"/>
+            <JFXTextField fx:id="istock" labelFloat="true" promptText="Enter stock" GridPane.columnIndex="2"
+                          GridPane.rowIndex="1"/>
+            <JFXTextField fx:id="imin" labelFloat="true" promptText="Minimum Stock" GridPane.columnIndex="3"
+                          GridPane.rowIndex="1"/>
+            <JFXButton fx:id="btnCancel" alignment="CENTER" buttonType="RAISED" contentDisplay="GRAPHIC_ONLY"
+                       maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                       prefHeight="26.0" prefWidth="26.0" ripplerFill="white" styleClass="btn-cancel" text="C"
+                       textOverrun="CLIP" GridPane.columnIndex="4" GridPane.halignment="CENTER"
+                       GridPane.valignment="CENTER"/>
+            <JFXButton fx:id="btnConfirm" contentDisplay="GRAPHIC_ONLY" maxHeight="-Infinity" maxWidth="-Infinity"
+                       minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="26.0" ripplerFill="white"
+                       styleClass="btn-add" textAlignment="CENTER" textOverrun="CLIP" GridPane.columnIndex="4"
+                       GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER"/>
+            <JFXButton fx:id="btnInsert" styleClass="btn-insert-selected" text="INSERT"/>
+            <JFXButton fx:id="btnEdit" styleClass="btn-edit" text="EDIT" GridPane.rowIndex="1"/>
+
+        </GridPane>
+        <VBox.margin>
+            <Insets bottom="20.0"/>
+        </VBox.margin>
+    </HBox>
+    <HBox alignment="CENTER" styleClass="table-header">
+        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Barang" HBox.hgrow="ALWAYS"/>
+        <JFXTextField fx:id="search" alignment="CENTER_RIGHT" prefWidth="150.0" promptText="Search Table"
+                      styleClass="search"/>
+    </HBox>
+    <JFXTreeTableView fx:id="table" maxWidth="Infinity" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <JFXTreeTableColumn fx:id="cselect" styleClass="col"/>
+            <JFXTreeTableColumn fx:id="cid" styleClass="col" text="ID"/>
+            <JFXTreeTableColumn fx:id="cname" styleClass="col" text="Name"/>
+            <JFXTreeTableColumn fx:id="cunit" styleClass="col" text="Unit"/>
+            <JFXTreeTableColumn fx:id="cprice" styleClass="col" text="Price"/>
+            <JFXTreeTableColumn fx:id="cstock" styleClass="col" text="Stock"/>
+            <JFXTreeTableColumn fx:id="cmin" styleClass="col" text="Minimum Stock"/>
+            <JFXTreeTableColumn fx:id="caction" styleClass="col"/>
+        </columns>
+        <columnResizePolicy>
+            <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+    </JFXTreeTableView>
+    <HBox alignment="CENTER_RIGHT" spacing="4.0" styleClass="table-footer">
+        <JFXButton fx:id="btnPrint" ripplerFill="WHITE" styleClass="btn-control" text="Print">
+            <HBox.margin>
+                <Insets right="4.0"/>
+            </HBox.margin>
+        </JFXButton>
+        <JFXButton fx:id="btnExport" ripplerFill="WHITE" styleClass="btn-control" text="Export">
+            <HBox.margin>
+                <Insets left="4.0"/>
+            </HBox.margin>
+        </JFXButton>
+        <Label fx:id="pageCount" alignment="CENTER_RIGHT" maxWidth="Infinity" styleClass="footer-label"
+               HBox.hgrow="ALWAYS"/>
+        <JFXButton fx:id="btnPref" contentDisplay="GRAPHIC_ONLY" ripplerFill="WHITE" styleClass="footer-prev"
+                   textOverrun="CLIP"/>
+        <JFXButton fx:id="btnNext" contentDisplay="GRAPHIC_ONLY" ripplerFill="WHITE" styleClass="footer-next"
+                   textOverrun="CLIP"/>
+    </HBox>
+    <Pagination fx:id="pagination" VBox.vgrow="ALWAYS"/>
+
+    <HBox.margin>
+        <Insets top="10.0"/>
+    </HBox.margin>
+</VBox>

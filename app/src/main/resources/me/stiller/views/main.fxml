@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXDialog?>
+<?import com.jfoenix.controls.JFXDialogLayout?>
+<?import com.jfoenix.controls.JFXListView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<StackPane fx:id="root" alignment="BOTTOM_RIGHT" xmlns="http://javafx.com/javafx/20.0.1"
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.stiller.controller.MainController">
+    <VBox>
+        <HBox fx:id="titleBar" maxHeight="30.0" maxWidth="Infinity" minWidth="-Infinity" prefHeight="30.0"
+              styleClass="title-bar" VBox.vgrow="ALWAYS">
+            <HBox prefHeight="100.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
+                <JFXButton fx:id="mdata" maxHeight="Infinity" maxWidth="Infinity" prefWidth="64.0" styleClass="btn-menu"
+                           text="Data"/>
+                <JFXButton fx:id="mtransact" maxHeight="Infinity" maxWidth="Infinity" styleClass="btn-menu"
+                           text="Transaksi"/>
+                <JFXButton fx:id="mreport" maxHeight="Infinity" maxWidth="Infinity" prefWidth="64.0"
+                           styleClass="btn-menu" text="Laporan"/>
+                <JFXButton fx:id="mutil" maxHeight="Infinity" maxWidth="Infinity" prefWidth="64.0" styleClass="btn-menu"
+                           text="Utility"/>
+                <JFXButton fx:id="mexit" maxHeight="Infinity" maxWidth="Infinity" prefWidth="64.0" styleClass="btn-menu"
+                           text="Keluar"/>
+            </HBox>
+            <JFXButton fx:id="btnMin" contentDisplay="GRAPHIC_ONLY" maxWidth="50.0" prefHeight="Infinity"
+                       prefWidth="50.0" ripplerFill="WHITE" styleClass="min" textOverrun="CLIP"/>
+            <JFXButton fx:id="btnMax" contentDisplay="GRAPHIC_ONLY" maxWidth="50.0" prefHeight="Infinity"
+                       prefWidth="50.0" ripplerFill="WHITE" styleClass="max" textOverrun="CLIP"/>
+            <JFXButton fx:id="btnClose" alignment="CENTER" contentDisplay="GRAPHIC_ONLY" maxWidth="50.0"
+                       prefHeight="Infinity" prefWidth="50.0" ripplerFill="WHITE" styleClass="close"
+                       textOverrun="CLIP"/>
+        </HBox>
+        <HBox prefHeight="465.0" prefWidth="755.0" styleClass="scene" VBox.vgrow="ALWAYS">
+            <VBox fx:id="navbar" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="60.0"
+                  styleClass="nav">
+                <HBox.margin>
+                    <Insets/>
+                </HBox.margin>
+                <StackPane VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER">
+                        <JFXListView fx:id="nList" maxHeight="-Infinity" styleClass="navbar-listview"
+                                     verticalGap="16.0"/>
+                    </HBox>
+                    <VBox alignment="CENTER" maxHeight="-Infinity" StackPane.alignment="TOP_LEFT">
+                        <Circle fx:id="profile" fill="#007ef4" radius="16.0"/>
+                        <Label fx:id="username" maxWidth="Infinity" styleClass="profile-username" text="Username"/>
+                        <Label fx:id="email" maxWidth="Infinity" styleClass="profile-email" text="Email"/>
+                        <StackPane.margin>
+                            <Insets top="12.0"/>
+                        </StackPane.margin>
+                    </VBox>
+                    <HBox fx:id="logoutLayout" maxHeight="-Infinity" styleClass="logout-layout"
+                          StackPane.alignment="BOTTOM_CENTER">
+                        <Label text="Logout"/>
+                        <StackPane.margin>
+                            <Insets bottom="30.0"/>
+                        </StackPane.margin>
+                    </HBox>
+                </StackPane>
+            </VBox>
+            <VBox fx:id="vbox" alignment="TOP_CENTER" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                    <Insets bottom="20.0" left="40.0" right="40.0" top="20.0"/>
+                </HBox.margin>
+            </VBox>
+        </HBox>
+    </VBox>
+    <JFXDialog fx:id="dialog" alignment="BOTTOM_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+               prefHeight="20.0" prefWidth="320.0" styleClass="dialog" transitionType="RIGHT">
+        <JFXDialogLayout fx:id="dialogLayout">
+            <HBox fx:id="dialogBackground" alignment="CENTER">
+                <StackPane fx:id="iconStatus" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                           minWidth="-Infinity" prefHeight="40.0" prefWidth="40.0" styleClass="status-icon-background"/>
+                <Label fx:id="dialogMsg" maxWidth="Infinity" text="Item Succesfully Added" HBox.hgrow="ALWAYS">
+                </Label>
+                <JFXButton fx:id="dialogClose" contentDisplay="GRAPHIC_ONLY" maxHeight="-Infinity" maxWidth="-Infinity"
+                           minHeight="-Infinity" minWidth="-Infinity" prefHeight="32.0" prefWidth="32.0"
+                           ripplerFill="white" styleClass="dialog-close" textOverrun="CLIP"/>
+                <padding>
+                    <Insets left="20.0" right="20.0"/>
+                </padding>
+            </HBox>
+        </JFXDialogLayout>
+        <StackPane.margin>
+            <Insets bottom="40.0" right="10.0"/>
+        </StackPane.margin>
+    </JFXDialog>
+</StackPane>

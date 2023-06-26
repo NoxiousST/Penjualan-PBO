@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXPasswordField?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+
+<StackPane fx:id="loginPane" maxHeight="Infinity" maxWidth="400" styleClass="login-pane" HBox.hgrow="ALWAYS"
+           xmlns="http://javafx.com/javafx/20.0.1"
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.stiller.controller.RegisterController">
+    <VBox alignment="CENTER" spacing="16.0">
+        <VBox>
+            <Label styleClass="txt-welcome" text="CREATE ACCOUNT"/>
+            <Label styleClass="txt-login" text="Sign Up"/>
+            <Label text="Create an account and continue"/>
+        </VBox>
+        <VBox spacing="8.0">
+            <VBox>
+                <Label text="Username"/>
+                <JFXTextField fx:id="userField"/>
+                <Label fx:id="validUser" managed="false" styleClass="error" text="Label"/>
+            </VBox>
+            <VBox>
+                <Label text="Email"/>
+                <JFXTextField fx:id="emailField"/>
+                <Label fx:id="validEmail" managed="false" styleClass="error" text="Label"/>
+            </VBox>
+            <VBox>
+                <Label text="Password"/>
+                <JFXPasswordField fx:id="passField"/>
+                <Label fx:id="validPass" managed="false" styleClass="error" text="Label"/>
+            </VBox>
+            <VBox>
+                <Label text="Confirm Password"/>
+                <JFXPasswordField fx:id="cpassField"/>
+                <Label fx:id="validCPass" managed="false" styleClass="error" text="Label"/>
+            </VBox>
+        </VBox>
+        <JFXButton fx:id="btnRegister" maxWidth="Infinity" styleClass="btn-login" text="Sign Up">
+            <VBox.margin>
+                <Insets top="8.0"/>
+            </VBox.margin>
+        </JFXButton>
+        <HBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
+            <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                  minWidth="-Infinity">
+                <Label text="Already have an account?"/>
+                <JFXButton fx:id="toLogin" styleClass="btn-nav" text="Login"/>
+            </HBox>
+        </HBox>
+        <padding>
+            <Insets bottom="24.0" left="36.0" right="36.0" top="24.0"/>
+        </padding>
+    </VBox>
+</StackPane>
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<HBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="600" prefWidth="900" styleClass="auth" xmlns="http://javafx.com/javafx/20.0.1"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.stiller.controller.AuthController">
+    <HBox fx:id="landing" alignment="TOP_RIGHT" maxHeight="Infinity" maxWidth="Infinity" prefWidth="100.0"
+          styleClass="landing" HBox.hgrow="ALWAYS">
+        <JFXButton fx:id="btnBack" alignment="CENTER" contentDisplay="GRAPHIC_ONLY" maxHeight="-Infinity"
+                   maxWidth="-Infinity" minHeight="-Infinity" ripplerFill="WHITE" styleClass="btn-back"/>
+        <padding>
+            <Insets right="16.0" top="16.0"/>
+        </padding>
+    </HBox>
+    <StackPane fx:id="authPane" maxHeight="Infinity" maxWidth="400" styleClass="login-pane" HBox.hgrow="ALWAYS"/>
+</HBox>
