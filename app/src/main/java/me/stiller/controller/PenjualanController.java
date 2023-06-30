@@ -95,7 +95,7 @@ public class PenjualanController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         list = dataRepository.getPenjualanList();
         list.forEach(i -> {

@@ -16,7 +16,7 @@
     <padding>
         <Insets left="20.0" right="20.0" />
     </padding>
-    <HBox fx:id="formLayout" alignment="CENTER" spacing="20.0" styleClass="layout-form">
+    <HBox alignment="CENTER" spacing="20.0" styleClass="layout-form">
         <VBox spacing="20.0" HBox.hgrow="ALWAYS">
             <HBox alignment="CENTER" spacing="20.0">
                 <JFXTextField fx:id="iOrderId" editable="false" labelFloat="true" promptText="ID Jual" HBox.hgrow="ALWAYS" />
@@ -41,7 +41,7 @@
         </VBox.margin>
     </HBox>
     <HBox alignment="CENTER" styleClass="table-header">
-        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Transaksi" HBox.hgrow="ALWAYS" />
+        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Transaksi Beli" HBox.hgrow="ALWAYS" />
         <JFXTextField fx:id="iSearch" alignment="CENTER_RIGHT" prefWidth="150.0" promptText="Search Table" styleClass="search" />
     </HBox>
     <JFXTreeTableView fx:id="table" maxWidth="Infinity" styleClass="table-view" VBox.vgrow="ALWAYS">

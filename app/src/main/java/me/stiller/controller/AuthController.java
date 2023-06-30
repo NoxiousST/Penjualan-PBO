@@ -37,7 +37,7 @@ public class AuthController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         btnBack.setOnMouseClicked(event -> {
             if (authPane.getChildren().size() > 1)
@@ -45,14 +45,14 @@ public class AuthController implements Initializable {
         });
 
         btnBack.setGraphic(getIcon("left"));
-        changeView("login");
+        replacePane("login");
     }
 
     public void add3Login(Node node) {
         authPane.getChildren().add(node);
     }
 
-    public void changeView(String name) {
+    public void replacePane(String name) {
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("views/" + name + ".fxml"));
         try {
             Parent childRoot = loader.load();

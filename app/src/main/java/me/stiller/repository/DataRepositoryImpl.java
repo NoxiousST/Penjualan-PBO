@@ -12,6 +12,7 @@ import java.util.ArrayList;
 public class DataRepositoryImpl implements DataRepository {
     private final ObservableList<Barang> barangList;
     private final ObservableList<Konsumen> konsumenList;
+    private final ObservableList<Supplier> supplierList;
     private final ObservableList<Jual> penjualanList;
     private final ObservableList<Jual.DJual> transactionList;
     private Barang barang;
@@ -21,6 +22,7 @@ public class DataRepositoryImpl implements DataRepository {
     public DataRepositoryImpl() {
         barangList = FXCollections.observableArrayList();
         konsumenList = FXCollections.observableArrayList();
+        supplierList = FXCollections.observableArrayList();
         penjualanList = FXCollections.observableArrayList();
         transactionList = FXCollections.observableArrayList();
     }
@@ -77,6 +79,28 @@ public class DataRepositoryImpl implements DataRepository {
         for (Konsumen k : konsumenList)
             if (k.getCustomerId().equals(id)) return k;
         return new Konsumen();
+    }
+
+    @Override
+    public ObservableList<Supplier> getSupplierList() {
+        return supplierList;
+    }
+
+    @Override
+    public void setSupplierList(ArrayList<Supplier> list) {
+        supplierList.setAll(list);
+    }
+
+    @Override
+    public Supplier getSupplier(int position) {
+        return supplierList.get(position);
+    }
+
+    @Override
+    public Supplier getSupplier(String id) {
+        for (Supplier k : supplierList)
+            if (k.getSupplierId().equals(id)) return k;
+        return new Supplier();
     }
 
     @Override

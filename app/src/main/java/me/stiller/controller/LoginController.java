@@ -65,7 +65,7 @@ public class LoginController implements Initializable, RetrieveLogin {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         gLogin.setOnMouseClicked(e -> authController.add3Login(new AuthorizeGoogle(this).getWebView()));
         gLogin.setGraphic(getIcon("google"));
@@ -77,7 +77,7 @@ public class LoginController implements Initializable, RetrieveLogin {
         ghLogin.setGraphic(getIcon("github"));
 
         btnLogin.setOnMouseClicked(e -> concurentTask(this::validateField));
-        toRegister.setOnMouseClicked(event -> authController.changeView("register"));
+        toRegister.setOnMouseClicked(event -> authController.replacePane("register"));
     }
 
     private void validateField() {
@@ -129,12 +129,11 @@ public class LoginController implements Initializable, RetrieveLogin {
             scene.getStylesheets().add(Objects.requireNonNull(Main.class.getResource("css/styles.css")).toExternalForm());
             scene.setFill(Color.TRANSPARENT);
 
-            newRoot.requestFocus();
-
             Stage stage = new Stage();
             stage.initStyle(StageStyle.TRANSPARENT);
             stage.setScene(scene);
             stage.show();
+            newRoot.requestFocus();
 
             MainController mainController = newLoader.getController();
         } catch (Exception e) {

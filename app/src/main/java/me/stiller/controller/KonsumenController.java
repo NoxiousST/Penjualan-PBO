@@ -18,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import me.stiller.Main;
 import me.stiller.Server;
-import me.stiller.data.models.Barang;
 import me.stiller.data.models.Konsumen;
 
 import me.stiller.repository.DataRepository;
@@ -30,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -88,7 +86,7 @@ public class KonsumenController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         list = dataRepository.getKonsumenList();
         columns.addAll(List.of(cselect, cid, cname, caddress, ccity, cpostal, cphone, cemail, caction));

@@ -19,6 +19,11 @@ public interface DataRepository {
     Konsumen getKonsumen(int position);
     Konsumen getKonsumen(String id);
 
+    ObservableList<Supplier> getSupplierList();
+    void setSupplierList(ArrayList<Supplier> list);
+    Supplier getSupplier(int position);
+    Supplier getSupplier(String id);
+
     ArrayList<String> getBarangIds();
     ArrayList<String> getKonsumenIds();
 

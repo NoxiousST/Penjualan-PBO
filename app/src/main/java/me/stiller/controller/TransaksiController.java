@@ -88,7 +88,7 @@ public class TransaksiController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         iItemId.getItems().addAll(dataRepository.getBarangIds());
         iCustomerId.getItems().setAll(dataRepository.getKonsumenIds());

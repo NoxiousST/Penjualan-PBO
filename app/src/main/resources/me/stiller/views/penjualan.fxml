@@ -16,15 +16,12 @@
     <padding>
         <Insets left="20.0" right="20.0" />
     </padding>
-    <HBox fx:id="formLayout" alignment="CENTER" spacing="20.0" styleClass="layout-form">
-        <VBox.margin>
-            <Insets bottom="20.0" />
-        </VBox.margin>
-        <DatePicker fx:id="fdate" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" />
-        <DatePicker fx:id="ldate" />
-    </HBox>
     <HBox alignment="CENTER" styleClass="table-header">
-        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Konsumen" HBox.hgrow="ALWAYS" />
+        <Label maxWidth="-Infinity" styleClass="table-name" text="Tabel Penjualan"  />
+        <HBox maxWidth="Infinity" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="24">
+            <DatePicker fx:id="fdate" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="180" />
+            <DatePicker fx:id="ldate" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="180"/>
+        </HBox>
         <JFXTextField fx:id="search" alignment="CENTER_RIGHT" prefWidth="150.0" promptText="Search Table" styleClass="search" />
     </HBox>
     <JFXTreeTableView fx:id="table" maxWidth="Infinity" styleClass="table-view" VBox.vgrow="ALWAYS">
@@ -54,7 +51,7 @@
         <JFXButton fx:id="btnPref" contentDisplay="GRAPHIC_ONLY" ripplerFill="WHITE" styleClass="footer-prev" textOverrun="CLIP" />
         <JFXButton fx:id="btnNext" contentDisplay="GRAPHIC_ONLY" ripplerFill="WHITE" styleClass="footer-next" textOverrun="CLIP" />
     </HBox>
-    <Pagination fx:id="pagination" VBox.vgrow="ALWAYS" />
+    <Pagination fx:id="pagination" maxWidth="0" VBox.vgrow="NEVER" />
 
     <HBox.margin>
         <Insets top="10.0" />

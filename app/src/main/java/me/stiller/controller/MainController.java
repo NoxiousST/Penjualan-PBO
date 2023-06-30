@@ -92,7 +92,7 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         menus.addAll(List.of(mdata, mtransact, mreport, mutil, mexit));
         setTitleBar();
@@ -106,6 +106,7 @@ public class MainController implements Initializable {
         dataRepository.setBarangList(server.readBarang());
         dataRepository.setKonsumenList(server.readKonsumen());
         dataRepository.setPenjualanList(server.retrieveJualData());
+        dataRepository.setSupplierList(server.readSupplier());
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         changeNavbar("barang");
@@ -134,6 +135,7 @@ public class MainController implements Initializable {
         }
 
         logoutLayout.setOnMouseClicked(event -> toLogout());
+
     }
 
     private void changeNavbar(String name) {
@@ -145,10 +147,17 @@ public class MainController implements Initializable {
             switch (controller.getClass().getSimpleName()) {
                 case "BarangController" -> ((BarangController) controller).setParentController(this);
                 case "KonsumenController" -> ((KonsumenController) controller).setParentController(this);
+                case "SupplierController" -> ((SupplierController) controller).setParentController(this);
                 case "TransaksiController" -> ((TransaksiController) controller).setParentController(this);
                 case "PenjualanController" -> ((PenjualanController) controller).setParentController(this);
             }
             vbox.getChildren().setAll(childRoot);
+
+            root.setOnMouseClicked(event -> {
+                if (controller instanceof SupplierController) {
+                    ((SupplierController) controller).removeFocus();
+                }
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -230,7 +239,7 @@ public class MainController implements Initializable {
         dialogMsg.setWrapText(true);
         dialogClose.setGraphic(getIcon("close"));
         dialogClose.setOnMouseClicked(event -> dialog.close());
-        dialog.show();
+        Platform.runLater(() -> dialog.show());
         delayRun(() -> dialog.close(), 8600);
     }
 
@@ -253,6 +262,7 @@ public class MainController implements Initializable {
                     switch (index) {
                         case 0 -> changeNavbar("barang");
                         case 1 -> changeNavbar("konsumen");
+                        case 2 -> changeNavbar("supplier");
                     }
                 }
                 case "mtransact" -> {
@@ -274,7 +284,7 @@ public class MainController implements Initializable {
         for (JFXButton menu : menus) {
             menu.setOnMouseClicked(event -> {
                 switch (menu.getId()) {
-                    case "mdata" -> labels.addAll(List.of(new Label("Data Barang"), new Label("Data Konsumen")));
+                    case "mdata" -> labels.addAll(List.of(new Label("Data Barang"), new Label("Data Konsumen"), new Label("Data Supplier")));
                     case "mtransact" -> labels.addAll(List.of(new Label("Transaksi Jual"), new Label("Transaksi Beli")));
                     case "mreport" -> labels.addAll(List.of(new Label("Laporan Barang"), new Label("Laporan Konsumen"), new Label("Laporan Penjualan")));
                     case "mutil" -> labels.add(new Label("Backup"));

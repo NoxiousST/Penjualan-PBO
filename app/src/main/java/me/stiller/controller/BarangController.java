@@ -22,7 +22,6 @@ import javafx.scene.paint.Paint;
 import me.stiller.Main;
 import me.stiller.Server;
 import me.stiller.data.models.Barang;
-import me.stiller.data.models.Jual;
 import me.stiller.repository.DataRepository;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -41,7 +40,6 @@ import javax.inject.Inject;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.*;
 
 import static me.stiller.utils.Helper.*;
@@ -94,7 +92,7 @@ public class BarangController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
 
         Main mainApplication = Main.getInstance();
-        mainApplication.getBarangComponent().inject(this);
+        mainApplication.getComponent().inject(this);
 
         list = dataRepository.getBarangList();
         columns.addAll(List.of(cselect, cid, cname, cunit, cprice, cstock, cmin, caction));

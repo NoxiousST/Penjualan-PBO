@@ -84,6 +84,29 @@ public class Server {
         return list;
     }
 
+    public ArrayList<Supplier> readSupplier() {
+        ArrayList<Supplier> list = new ArrayList<>();
+        try {
+            PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM supplier");
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Supplier supplier = new Supplier(
+                        resultSet.getString(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6)
+                );
+                list.add(supplier);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+
     public ArrayList<Jual> retrieveJualData() {
         ArrayList<Jual> jualList = new ArrayList<>();
 
@@ -207,6 +230,28 @@ public class Server {
         }
     }
 
+    public boolean insert(Supplier supplier) {
+
+        LogManager.getLogger().debug(supplier.getSupplierName());
+        LogManager.getLogger().debug(supplier.getSupplierEmail());
+        LogManager.getLogger().debug(supplier.getSupplierAddress());
+        LogManager.getLogger().debug(supplier.getSupplierCity());
+        LogManager.getLogger().debug(supplier.getItemId());
+
+        String sql = "INSERT INTO supplier (name, email, address, city, itemId) VALUES (?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement statement = getConnection().prepareStatement(sql);
+            statement.setString(1, supplier.getSupplierName());
+            statement.setString(2, supplier.getSupplierEmail());
+            statement.setString(3, supplier.getSupplierAddress());
+            statement.setString(4, supplier.getSupplierCity());
+            statement.setString(5, supplier.getItemId());
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public boolean insert(Jual jual) {
         String sql = "INSERT INTO jual (id, id_konsumen, order_date) VALUES (?, ?, ?)";
         try {
@@ -308,6 +353,26 @@ public class Server {
         }
     }
 
+    public boolean update(Supplier supplier) {
+        Connection connection = new Server().getConnection();
+        String sql = "UPDATE supplier SET name = ?, email = ?, address = ?, city = ?, itemId = ? WHERE id = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, supplier.getSupplierName());
+            statement.setString(2, supplier.getSupplierEmail());
+            statement.setString(3, supplier.getSupplierAddress());
+            statement.setString(4, supplier.getSupplierCity());
+            statement.setString(5, supplier.getItemId());
+            statement.setString(6, supplier.getSupplierId());
+            LogManager.getLogger().debug(statement.executeUpdate());
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LogManager.getLogger().debug(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean delete(Barang barang) {
         Connection connection = new Server().getConnection();
         String sql = "DELETE FROM barang WHERE id = ?";
@@ -328,6 +393,18 @@ public class Server {
             statement.setString(1, konsumen.getCustomerId());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public boolean delete(Supplier supplier) {
+        String sql = "DELETE FROM supplier WHERE id = ?";
+        try {
+            PreparedStatement statement = getConnection().prepareStatement(sql);
+            statement.setString(1, supplier.getSupplierId());
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }

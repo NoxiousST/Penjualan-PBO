@@ -7,7 +7,6 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -20,7 +19,6 @@ import org.apache.logging.log4j.util.Strings;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -63,7 +61,7 @@ public class RegisterController implements Initializable {
         eLabels = new ArrayList<>(List.of(validUser, validEmail, validPass, validCPass));
         btnRegister.setOnMouseClicked(event -> concurentTask(this::validateField));
 
-        toLogin.setOnMouseClicked(event -> authController.changeView("login"));
+        toLogin.setOnMouseClicked(event -> authController.replacePane("login"));
     }
 
     private void validateField() {
@@ -97,7 +95,7 @@ public class RegisterController implements Initializable {
             );
 
             if (server.registerUser(user)) {
-                authController.changeView("login");
+                authController.replacePane("login");
             }
         }
     }
