@@ -110,6 +110,10 @@ public class SupplierController implements Initializable {
         initializeTable();
         setForm();
 
+        removeClickFocus();
+    }
+
+    private void removeClickFocus() {
         root.setOnMousePressed(event -> removeFocus());
     }
 
@@ -143,21 +147,24 @@ public class SupplierController implements Initializable {
                     sb = new StringBuilder(supplier.getItemId());
                     caction.setMaxWidth(60);
 
+                    listMenu.getStyleClass().add("popup-list");
+                    listMenu.getItems().setAll(new Label("Edit"), new Label("Delete"), new Label("Add Item"), new Label("Remove Item"));
+                    listMenu.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
                     popup.getStyleClass().add("popup");
                     action.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                     action.setRipplerFill(Paint.valueOf("white"));
                     action.setGraphic(getIcon("action"));
-                    action.setOnMouseClicked(event -> popup.show(action,
-                            JFXPopup.PopupVPosition.TOP,
-                            JFXPopup.PopupHPosition.LEFT,
-                            event.getX(), event.getY())
-                    );
+                    action.setOnMouseClicked(event -> {
+                        int size = intoList(supplier.getItemId()).size();
+                        listMenu.getItems().get(3).setDisable(size <= 1);
+                        popup.show(action,
+                                JFXPopup.PopupVPosition.TOP,
+                                JFXPopup.PopupHPosition.LEFT,
+                                event.getX(), event.getY());
+                    });
 
-                    listMenu.getStyleClass().add("popup-list");
-                    listMenu.getItems().setAll(new Label("Edit"), new Label("Delete"), new Label("Add Item"), new Label("Remove Item"));
-                    listMenu.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
                     listMenu.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-
                         String[] splitArray = supplier.getItemId().split(",");
                         ObservableList<String> listId = FXCollections.observableArrayList(splitArray);
                         log.debug(listId.size());
@@ -186,13 +193,67 @@ public class SupplierController implements Initializable {
                             changeTableView(0);
 
                         } else if (newValue.intValue() == 2) {
+                            comboBox.getItems().clear();
+                            dataRepository.getBarangList().forEach(barang -> {
+
+                                String str = supplier.getItemId();
+                                Pattern pattern = Pattern.compile("\\((\\d+)\\)");
+                                ArrayList<String> numbersList = new ArrayList<>();
+                                Matcher matcher = pattern.matcher(str);
+                                while (matcher.find()) {
+                                    String id = matcher.group(1);
+                                    numbersList.add(id);
+                                }
+
+                                if (!numbersList.contains(barang.getItemId())) {
+                                    String s = barang.getItemName() + " (" + barang.getItemId() + ")";
+                                    comboBox.getItems().add(s);
+                                }
+                            });
+
                             comboBox.setVisible(true);
                             comboBox.setManaged(true);
                             comboBox.show();
-                        } else if (newValue.intValue() == 3) {
-                            inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
-                            dataRepository.setSupplierList(server.readSupplier());
-                            changeTableView(0);
+                            comboBox.requestFocus();
+
+                            comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oVal, nVal) -> {
+                                if (nVal != null) {
+                                    sb.append(", ").append(nVal);
+
+                                    supplier.setItemId(sb.toString());
+                                    server.update(supplier);
+                                    dataRepository.setSupplierList(server.readSupplier());
+                                    changeTableView(0);
+                                    comboBox.getSelectionModel().clearSelection();
+                                    comboBox.setVisible(false);
+                                    comboBox.setManaged(false);
+                                    table.refresh();
+                                }
+                            });
+                        } else if (newValue.intValue() == 3 && !listMenu.getItems().get(3).isDisabled()) {
+                            String str = supplier.getItemId();
+
+                            comboBox.getItems().setAll(intoList(str));
+                            comboBox.setVisible(true);
+                            comboBox.setManaged(true);
+                            comboBox.show();
+                            comboBox.requestFocus();
+
+                            comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oVal, nVal) -> {
+                                if (nVal != null) {
+                                    List<String> mList = intoList(supplier.getItemId());
+                                    mList.remove(nVal);
+                                    String mItem = intoString(mList);
+                                    supplier.setItemId(mItem);
+                                    server.update(supplier);
+                                    dataRepository.setSupplierList(server.readSupplier());
+                                    changeTableView(0);
+                                    comboBox.getSelectionModel().clearSelection();
+                                    comboBox.setVisible(false);
+                                    comboBox.setManaged(false);
+                                    table.refresh();
+                                }
+                            });
                         }
                     });
 
@@ -203,65 +264,65 @@ public class SupplierController implements Initializable {
                         }
                     });
 
+
                     hbox.getChildren().setAll(label, action);
                     HBox.setHgrow(label, Priority.ALWAYS);
                     widthProperty().addListener((observable, oldValue, newValue) -> {
                         label.setMaxWidth(newValue.intValue());
                     });
+
                     label.setAlignment(Pos.CENTER);
                     label.setText(sb.toString());
 
                     comboBox.setVisible(false);
                     comboBox.setManaged(false);
-
                     comboBox.getStyleClass().add("combobox");
-                    dataRepository.getBarangList().forEach(barang -> {
-                        String str = supplier.getItemId();
-                        Pattern pattern = Pattern.compile("\\((\\d+)\\)");
-                        ArrayList<String> numbersList = new ArrayList<>();
-                        Matcher matcher = pattern.matcher(str);
-                        while (matcher.find()) {
-                            String id = matcher.group(1);
-                            numbersList.add(id);
-                        }
-
-                        if (!numbersList.contains(barang.getItemId())) {
-                            String s = barang.getItemName() + " (" + barang.getItemId() + ")";
-                            comboBox.getItems().add(s);
-                        }
-                    });
-
-                    comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                        sb.append(newValue).append(", ");
-                        supplier.setItemId(sb.toString());
-                        changeTableView(0);
-                        comboBox.getSelectionModel().clearSelection();
-                        comboBox.setVisible(false);
-                        comboBox.setManaged(false);
-                    });
 
                     comboBox.setOnMouseClicked(event -> {
                         comboBox.getSelectionModel().clearSelection();
                         comboBox.hide();
                     });
 
-                    vbox.getChildren().addAll(hbox, comboBox);
+                    vbox.getChildren().setAll(hbox, comboBox);
                     vbox.setAlignment(Pos.CENTER);
 
                     listMenu.setOnMouseClicked(e -> Platform.runLater(() -> {
                         listMenu.getSelectionModel().clearSelection();
                         popup.hide();
                     }));
-
-                    if (empty) {
-                        setGraphic(null);
-                        setText(null);
-                    } else {
-                        setGraphic(vbox);
-                        setText(null);
-
-                    }
                 }
+
+                if (empty) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    setGraphic(vbox);
+                    setText(null);
+                }
+            }
+
+            private ObservableList<String> intoList(String stringItem) {
+                ObservableList<String> myList = FXCollections.observableArrayList();
+                if (stringItem != null) {
+                    if (stringItem.contains(", "))
+                        myList.addAll(Arrays.asList(stringItem.split(", ")));
+                    else
+                        myList.add(stringItem);
+                }
+                return myList;
+            }
+
+            private String intoString(List<String> listItem) {
+                StringBuilder sb = new StringBuilder();
+                if (listItem != null && listItem.size() > 0) {
+                    for (String item : listItem) {
+                        sb.append(item).append(", ");
+                    }
+                    sb.setLength(sb.length() - 2);
+                } else {
+                    log.debug("WHAT");
+                }
+                return sb.toString();
             }
         });
 
@@ -300,7 +361,6 @@ public class SupplierController implements Initializable {
         table.setRoot(root);
         table.setShowRoot(false);
         setFilterPagination();
-
     }
 
     private void setForm() {

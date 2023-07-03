@@ -130,7 +130,7 @@ public class LoginController implements Initializable, RetrieveLogin {
             scene.setFill(Color.TRANSPARENT);
 
             Stage stage = new Stage();
-            stage.initStyle(StageStyle.TRANSPARENT);
+            //stage.initStyle(StageStyle.TRANSPARENT);
             stage.setScene(scene);
             stage.show();
             newRoot.requestFocus();

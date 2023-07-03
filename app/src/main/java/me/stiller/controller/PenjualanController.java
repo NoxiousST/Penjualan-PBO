@@ -20,14 +20,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
 import me.stiller.Main;
+import me.stiller.Server;
 import me.stiller.data.models.Barang;
 import me.stiller.data.models.Jual;
+import me.stiller.data.models.User;
 import me.stiller.repository.DataRepository;
 
 import org.apache.logging.log4j.LogManager;
@@ -93,7 +97,6 @@ public class PenjualanController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
         Main mainApplication = Main.getInstance();
         mainApplication.getComponent().inject(this);
 
@@ -155,6 +158,7 @@ public class PenjualanController implements Initializable {
 
     private void initializeColumn() {
         table.getColumns().setAll(columns);
+        log.debug(cOrderId.getStyleClass().get(0));
         cOrderId.setCellValueFactory(new TreeItemPropertyValueFactory<>("orderId"));
         cOrderDate.setCellValueFactory(new TreeItemPropertyValueFactory<>("orderDate"));
         cCustomerName.setCellValueFactory(new TreeItemPropertyValueFactory<>("customerName"));
@@ -188,7 +192,6 @@ public class PenjualanController implements Initializable {
                 }
             });
         });
-
     }
 
     private void setForm() {
@@ -240,8 +243,28 @@ public class PenjualanController implements Initializable {
             }
             filteredData.setPredicate(jual -> {
                 LocalDate date = LocalDate.parse(jual.getOrderDate());
-                return date.isAfter(newValue.minusDays(1)) &&
-                        date.isBefore(ldate.getValue().plusDays(1));
+                List<String> itemNames = jual.getItems().stream()
+                        .map(Jual.DJual::getItemName)
+                        .toList();
+                List<String> itemIds = jual.getItems().stream()
+                        .map(Jual.DJual::getItemId)
+                        .toList();
+                String lowerCaseNewValue = search.getText().toLowerCase();
+
+                boolean isMatch = jual.getCustomerName().contains(lowerCaseNewValue) ||
+                        itemNames.stream().anyMatch(name -> name.toLowerCase().contains(lowerCaseNewValue)) ||
+                        itemIds.stream().anyMatch(id -> id.toLowerCase().contains(lowerCaseNewValue));
+
+                if (newValue != null && ldate.getValue() != null) {
+                    isMatch = isMatch && (date.isBefore(ldate.getValue().plusDays(1)) &&
+                            date.isAfter(newValue.minusDays(1)));
+                } else if (newValue != null) {
+                    isMatch = isMatch && date.isAfter(newValue.minusDays(1));
+                } else if (ldate.getValue() != null) {
+                    isMatch = isMatch && date.isBefore(ldate.getValue().plusDays(1));
+                }
+
+                return isMatch;
             });
             changeTableView(pagination.getCurrentPageIndex());
             table.refresh();
@@ -254,8 +277,28 @@ public class PenjualanController implements Initializable {
             }
             filteredData.setPredicate(jual -> {
                 LocalDate date = LocalDate.parse(jual.getOrderDate());
-                return date.isBefore(newValue.plusDays(1)) &&
-                        date.isAfter(fdate.getValue().minusDays(1));
+                List<String> itemNames = jual.getItems().stream()
+                        .map(Jual.DJual::getItemName)
+                        .toList();
+                List<String> itemIds = jual.getItems().stream()
+                        .map(Jual.DJual::getItemId)
+                        .toList();
+                String lowerCaseNewValue = search.getText().toLowerCase();
+
+                boolean isMatch = jual.getCustomerName().contains(lowerCaseNewValue) ||
+                        itemNames.stream().anyMatch(name -> name.toLowerCase().contains(lowerCaseNewValue)) ||
+                        itemIds.stream().anyMatch(id -> id.toLowerCase().contains(lowerCaseNewValue));
+
+                if (fdate.getValue() != null && newValue != null) {
+                    isMatch = isMatch && (date.isBefore(newValue.plusDays(1)) &&
+                            date.isAfter(fdate.getValue().minusDays(1)));
+                } else if (fdate.getValue() != null) {
+                    isMatch = isMatch && date.isAfter(fdate.getValue().minusDays(1));
+                } else if (newValue != null) {
+                    isMatch = isMatch && date.isBefore(newValue.plusDays(1));
+                }
+
+                return isMatch;
             });
             changeTableView(pagination.getCurrentPageIndex());
         });
@@ -266,6 +309,7 @@ public class PenjualanController implements Initializable {
                 pagination.setCurrentPageIndex(pages);
             }
             filteredData.setPredicate(jual -> {
+                LocalDate date = LocalDate.parse(jual.getOrderDate());
                 List<String> itemNames = jual.getItems().stream()
                         .map(Jual.DJual::getItemName)
                         .toList();
@@ -273,10 +317,22 @@ public class PenjualanController implements Initializable {
                         .map(Jual.DJual::getItemId)
                         .toList();
                 String lowerCaseNewValue = newValue.toLowerCase();
-                return jual.getCustomerName().contains(lowerCaseNewValue) ||
-                        jual.getOrderDate().contains(lowerCaseNewValue) ||
+
+                boolean isMatch = jual.getCustomerName().contains(lowerCaseNewValue) ||
                         itemNames.stream().anyMatch(name -> name.toLowerCase().contains(lowerCaseNewValue)) ||
                         itemIds.stream().anyMatch(id -> id.toLowerCase().contains(lowerCaseNewValue));
+
+                if (fdate.getValue() != null && ldate.getValue() != null) {
+                    isMatch = isMatch && (date.isBefore(ldate.getValue().plusDays(1)) &&
+                            date.isAfter(fdate.getValue().minusDays(1)));
+                } else if (fdate.getValue() != null) {
+                    isMatch = isMatch && date.isAfter(fdate.getValue().minusDays(1));
+                } else if (ldate.getValue() != null) {
+                    isMatch = isMatch && date.isBefore(ldate.getValue().plusDays(1));
+                }
+
+                return isMatch;
+
             });
             changeTableView(pagination.getCurrentPageIndex());
         });
@@ -389,12 +445,12 @@ public class PenjualanController implements Initializable {
         cellStyle.setDataFormat((short) 14);
 
         int rowNum = 1;
-        XSSFRow dataRow = sheet.createRow(rowNum);
         for (Jual jual : list) {
+            XSSFRow dataRow = sheet.createRow(rowNum++);
             dataRow.createCell(0).setCellValue(Integer.parseInt(jual.getOrderId()));
-            dataRow.createCell(1).setCellValue(Integer.parseInt(jual.getCustomerId()));
-            dataRow.createCell(2).setCellValue(jual.getCustomerName());
-            XSSFCell dateCell = dataRow.createCell(3);
+            dataRow.createCell(2).setCellValue(Integer.parseInt(jual.getCustomerId()));
+            dataRow.createCell(3).setCellValue(jual.getCustomerName());
+            XSSFCell dateCell = dataRow.createCell(1);
             dateCell.setCellValue(LocalDate.parse(jual.getOrderDate()));
             dateCell.setCellStyle(cellStyle);
 
@@ -405,7 +461,8 @@ public class PenjualanController implements Initializable {
                 dataRow.createCell(6).setCellValue(item.getItemPrice());
                 dataRow.createCell(7).setCellValue(item.getItemQuantity());
                 dataRow.createCell(8).setCellValue(item.getItemTotal());
-                dataRow = sheet.createRow(rowNum++);
+                if (items.indexOf(item) != items.size() -1)
+                    dataRow = sheet.createRow(rowNum++);
             }
         }
 
@@ -415,8 +472,9 @@ public class PenjualanController implements Initializable {
 
         try (FileOutputStream fileOut = new FileOutputStream(getExportPath(root))) {
             workbook.write(fileOut);
-            if (workbook.getSheet("Penjualan") != null) mainController.setDialog(true,
-                    "Report succesfully exported to WorkBook");
+            if (workbook.getSheet("Penjualan") != null) {
+                mainController.setDialog(true, "Report succesfully exported to WorkBook");
+            }
 
             workbook.close();
         } catch (IOException e) {
