@@ -3,6 +3,8 @@ package me.stiller.controller;
 import com.jfoenix.controls.*;
 import com.jfoenix.controls.cells.editors.base.JFXTreeTableCell;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringExpression;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static me.stiller.utils.Helper.*;
 
@@ -59,7 +62,7 @@ public class TransaksiController implements Initializable {
     private JFXTextField iOrderId, iOrderDate, iCustomerName, iItemName, iItemPrice, iItemQuantity, iItemTotal, iSearch;
 
     @FXML
-    private JFXButton bConfirm, bCancel, bPref, bNext, bSave, bDelete, bPrint, bExport;
+    private JFXButton bConfirm, bCancel, bPref, bNext, bSave, bDelete, bPrint;
 
     @FXML
     private Label pageCount;
@@ -77,6 +80,7 @@ public class TransaksiController implements Initializable {
     private int pages;
 
     Logger log = LogManager.getLogger(TransaksiController.class.getName());
+
     public void setParentController(MainController mainController) {
         this.mainController = mainController;
     }
@@ -168,18 +172,29 @@ public class TransaksiController implements Initializable {
             iCustomerName.setText(konsumen.getCustomerName());
         });
 
-        bConfirm.disableProperty().bind(((iItemId.valueProperty().isNull())
+        bConfirm.disableProperty().bind(confirmBinding(iItemQuantity.textProperty())
                 .or(iItemName.textProperty().isEmpty())
                 .or(iItemPrice.textProperty().isEmpty())
                 .or(iItemQuantity.textProperty().isEmpty())
-                .or(iItemTotal.textProperty().isEmpty())));
+                .or(iItemTotal.textProperty().isEmpty()));
 
         bSave.disableProperty().bind(Bindings.isEmpty(list)
                 .or(iCustomerId.valueProperty().isNull()));
 
         bDelete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         bPrint.disableProperty().bind(Bindings.isEmpty(list));
-        bExport.disableProperty().bind(Bindings.isEmpty(list));
+    }
+
+    private BooleanBinding confirmBinding(StringExpression textProperty) {
+        Barang barang = dataRepository.getSelectedBarang();
+        Pattern numberPattern = Pattern.compile("^\\d+$");
+        if (barang != null) {
+            return Bindings.createBooleanBinding(() ->
+                            !numberPattern.matcher(textProperty.get()).matches() ||
+                                    Integer.parseInt(textProperty.getValue()) >= barang.getItemStock(),
+                    textProperty, barang.itemStockProperty());
+        }
+        return Bindings.createBooleanBinding(() -> false);
     }
 
     private void setForm() {
@@ -188,6 +203,7 @@ public class TransaksiController implements Initializable {
 
         iItemId.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             Barang barang = dataRepository.getBarang(newValue.intValue());
+            dataRepository.setSelectedBarang(barang);
             boolean itemExist = false;
             for (Jual.DJual penjualan : list) {
                 if (Objects.equals(penjualan.getItemId(), barang.getItemId())) {
@@ -257,13 +273,18 @@ public class TransaksiController implements Initializable {
                 dataRepository.setPenjualanList(server.retrieveJualData());
                 iOrderId.setText(String.valueOf(server.getLast()));
                 resetForm();
+
+                penjualan.getItems().forEach(item -> {
+                    Barang barang = dataRepository.getBarang(item.getItemId());
+                    barang.setItemStock(barang.getItemStock() - item.getItemQuantity());
+                    server.update(barang);
+                });
             } else
                 mainController.setDialog(false, "Failed to save data");
 
         });
 
         bPrint.setOnMouseClicked(event -> print());
-        bExport.setOnMouseClicked(event -> export());
     }
 
     private void changeTableView(int index) {
@@ -363,59 +384,13 @@ public class TransaksiController implements Initializable {
 
             parameter.put("title", "Laporan");
             parameter.put("transactionDataSource", transactionDataSource);
-            JasperReport jasperDesign =JasperCompileManager.compileReport(Objects.requireNonNull(
+            JasperReport jasperDesign = JasperCompileManager.compileReport(Objects.requireNonNull(
                     Main.class.getResource("jasper/transaksi.jrxml")).getPath());
 
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperDesign, parameter, new JREmptyDataSource());
 
             JasperViewer.viewReport(jasperPrint, false);
         } catch (JRException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void export() {
-
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet("Transaksi");
-
-        XSSFRow headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("ID Barang");
-        headerRow.createCell(1).setCellValue("Nama Barang");
-        headerRow.createCell(2).setCellValue("Harga");
-        headerRow.createCell(3).setCellValue("Kuantitas");
-        headerRow.createCell(4).setCellValue("Total Harga");
-
-        CellStyle priceStyle = workbook.createCellStyle();
-        DataFormat dataFormat = workbook.createDataFormat();
-        priceStyle.setDataFormat(dataFormat.getFormat("[$IDR] #,##0.00"));
-
-        int rowNum = 1;
-        for (Jual.DJual d : list) {
-            XSSFRow dataRow = sheet.createRow(rowNum++);
-            dataRow.createCell(0).setCellValue(Integer.parseInt(d.getItemId()));
-            dataRow.createCell(1).setCellValue(d.getItemName());
-            dataRow.createCell(3).setCellValue(d.getItemQuantity());
-            XSSFCell priceCell = dataRow.createCell(2);
-            XSSFCell totalCell = dataRow.createCell(4);
-            priceCell.setCellValue(d.getItemPrice());
-            totalCell.setCellValue(d.getItemTotal());
-            priceCell.setCellStyle(priceStyle);
-            totalCell.setCellStyle(priceStyle);
-        }
-
-        for (int i = 0; i <= 4; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        try (FileOutputStream fileOut = new FileOutputStream(getExportPath(root))) {
-            workbook.write(fileOut);
-            if (workbook.getSheet("Transaksi") != null)
-                mainController.setDialog(true, "Report succesfully exported to WorkBook");
-            else
-                mainController.setDialog(false, "Failed to save file");
-            workbook.close();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }

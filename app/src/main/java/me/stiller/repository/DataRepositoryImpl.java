@@ -1,13 +1,12 @@
 package me.stiller.repository;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import me.stiller.data.models.*;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DataRepositoryImpl implements DataRepository {
     private final ObservableList<Barang> barangList;
@@ -15,8 +14,11 @@ public class DataRepositoryImpl implements DataRepository {
     private final ObservableList<Supplier> supplierList;
     private final ObservableList<Jual> penjualanList;
     private final ObservableList<Jual.DJual> transactionList;
+    private final ObservableList<DetailPembelian> beliTransactionList;
+    private final ObservableList<Pembelian> pembelianList;
     private Barang barang;
     private User user;
+    private Supplier supplier;
 
     @Inject
     public DataRepositoryImpl() {
@@ -25,6 +27,8 @@ public class DataRepositoryImpl implements DataRepository {
         supplierList = FXCollections.observableArrayList();
         penjualanList = FXCollections.observableArrayList();
         transactionList = FXCollections.observableArrayList();
+        beliTransactionList = FXCollections.observableArrayList();
+        pembelianList = FXCollections.observableArrayList();
     }
 
     @Override
@@ -104,6 +108,36 @@ public class DataRepositoryImpl implements DataRepository {
     }
 
     @Override
+    public Supplier getSelectedSupplier() {
+        return this.supplier;
+    }
+
+    @Override
+    public void setSelectedSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+    @Override
+    public ObservableList<DetailPembelian> getDetailPembelian() {
+        return beliTransactionList;
+    }
+
+    @Override
+    public void setDetailPembelian(List<DetailPembelian> list) {
+        beliTransactionList.setAll(list);
+    }
+
+    @Override
+    public ObservableList<Pembelian> getPembelianList() {
+        return pembelianList;
+    }
+
+    @Override
+    public void setPembelianList(ArrayList<Pembelian> list) {
+        pembelianList.setAll(list);
+    }
+
+    @Override
     public ArrayList<String> getBarangIds() {
         ArrayList<String> ids = new ArrayList<>();
         barangList.forEach(barang -> ids.add(barang.getItemId()));
@@ -114,6 +148,13 @@ public class DataRepositoryImpl implements DataRepository {
     public ArrayList<String> getKonsumenIds() {
         ArrayList<String> ids = new ArrayList<>();
         konsumenList.forEach(konsumen -> ids.add(konsumen.getCustomerId()));
+        return ids;
+    }
+
+    @Override
+    public ArrayList<String> getSupplierIds() {
+        ArrayList<String> ids = new ArrayList<>();
+        supplierList.forEach(konsumen -> ids.add(konsumen.getSupplierId()));
         return ids;
     }
 

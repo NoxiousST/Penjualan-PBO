@@ -107,6 +107,7 @@ public class MainController implements Initializable {
         dataRepository.setKonsumenList(server.readKonsumen());
         dataRepository.setPenjualanList(server.retrieveJualData());
         dataRepository.setSupplierList(server.readSupplier());
+        dataRepository.setPembelianList(server.readPembelian());
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         changeNavbar("barang");
@@ -116,7 +117,7 @@ public class MainController implements Initializable {
             switch (index) {
                 case 0 -> changeNavbar("barang");
                 case 1 -> changeNavbar("konsumen");
-                case 2 -> changeNavbar("transaksi");
+                case 2 -> changeNavbar("transaksi penjualan");
                 case 3 -> changeNavbar("penjualan");
             }
         });
@@ -139,7 +140,7 @@ public class MainController implements Initializable {
     }
 
     private void changeNavbar(String name) {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("views/" + name + ".fxml"));
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("views/" + name.replace(" ", "_") + ".fxml"));
         try {
             Parent childRoot = loader.load();
             Object controller = loader.getController();
@@ -150,6 +151,8 @@ public class MainController implements Initializable {
                 case "SupplierController" -> ((SupplierController) controller).setParentController(this);
                 case "TransaksiController" -> ((TransaksiController) controller).setParentController(this);
                 case "PenjualanController" -> ((PenjualanController) controller).setParentController(this);
+                case "PembelianController" -> ((PembelianController) controller).setParentController(this);
+                case "TransaksiBeliController" -> ((TransaksiBeliController) controller).setParentController(this);
             }
             vbox.getChildren().setAll(childRoot);
 
@@ -266,13 +269,15 @@ public class MainController implements Initializable {
                     }
                 }
                 case "mtransact" -> {
-                    if (index == 0) changeNavbar("transaksi");
+                    switch (index) {
+                        case 0 -> changeNavbar("transaksi penjualan");
+                        case 1 -> changeNavbar("transaksi pembelian");
+                    }
                 }
                 case "mreport" -> {
                     switch (index) {
-                        case 0 -> changeNavbar("barang");
-                        case 1 -> changeNavbar("konsumen");
-                        case 2 -> changeNavbar("penjualan");
+                        case 0 -> changeNavbar("penjualan");
+                        case 1 -> changeNavbar("pembelian");
                     }
                 }
                 case "mutil" -> {
@@ -286,7 +291,7 @@ public class MainController implements Initializable {
                 switch (menu.getId()) {
                     case "mdata" -> labels.addAll(List.of(new Label("Data Barang"), new Label("Data Konsumen"), new Label("Data Supplier")));
                     case "mtransact" -> labels.addAll(List.of(new Label("Transaksi Jual"), new Label("Transaksi Beli")));
-                    case "mreport" -> labels.addAll(List.of(new Label("Laporan Barang"), new Label("Laporan Konsumen"), new Label("Laporan Penjualan")));
+                    case "mreport" -> labels.addAll(List.of(new Label("Laporan Penjualan"), new Label("Laporan Pembelian")));
                     case "mutil" -> labels.add(new Label("Backup"));
                     case "mexit" -> exitWindow();
                 }

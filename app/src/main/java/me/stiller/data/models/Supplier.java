@@ -9,17 +9,15 @@ public class Supplier extends RecursiveTreeObject<Supplier> {
     StringProperty supplierName = new SimpleStringProperty();
     StringProperty supplierEmail = new SimpleStringProperty();
     StringProperty supplierAddress = new SimpleStringProperty();
-    StringProperty supplierCity = new SimpleStringProperty();
     StringProperty itemId = new SimpleStringProperty();
 
     public Supplier() {}
 
-    public Supplier(String supplierId, String supplierName, String supplierEmail, String supplierAddress, String supplierCity, String itemId) {
+    public Supplier(String supplierId, String supplierName, String supplierEmail, String supplierAddress, String itemId) {
         setSupplierId(supplierId);
         setSupplierName(supplierName);
         setSupplierEmail(supplierEmail);
         setSupplierAddress(supplierAddress);
-        setSupplierCity(supplierCity);
         setItemId(itemId);
     }
 
@@ -53,14 +51,6 @@ public class Supplier extends RecursiveTreeObject<Supplier> {
 
     public void setSupplierAddress(String supplierAddress) {
         this.supplierAddress.set(supplierAddress);
-    }
-
-    public String getSupplierCity() {
-        return supplierCity.get();
-    }
-
-    public void setSupplierCity(String supplierCity) {
-        this.supplierCity.set(supplierCity);
     }
 
     public String getItemId() {

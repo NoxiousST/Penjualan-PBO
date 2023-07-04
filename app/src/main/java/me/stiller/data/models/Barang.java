@@ -14,14 +14,14 @@ public class Barang extends RecursiveTreeObject<Barang> {
     StringProperty itemName = new SimpleStringProperty();
     StringProperty itemUnit = new SimpleStringProperty();
     DoubleProperty itemPrice = new SimpleDoubleProperty();
-    StringProperty itemStock = new SimpleStringProperty();
-    StringProperty itemMinStock = new SimpleStringProperty();
+    IntegerProperty itemStock = new SimpleIntegerProperty();
+    IntegerProperty itemMinStock = new SimpleIntegerProperty();
     StringProperty itemPriceFormatted = new SimpleStringProperty();
 
     public Barang() {
     }
 
-    public Barang(String itemId, String itemName, String itemUnit, Double itemPrice, String itemStock, String itemMinStock) {
+    public Barang(String itemId, String itemName, String itemUnit, Double itemPrice, Integer itemStock, Integer itemMinStock) {
         setItemId(itemId);
         setItemName(itemName);
         setItemUnit(itemUnit);
@@ -63,19 +63,23 @@ public class Barang extends RecursiveTreeObject<Barang> {
         this.itemPrice.set(itemPrice);
     }
 
-    public String getItemStock() {
+    public Integer getItemStock() {
         return itemStock.get();
     }
 
-    public void setItemStock(String itemStock) {
+    public void setItemStock(Integer itemStock) {
         this.itemStock.set(itemStock);
     }
 
-    public String getItemMinStock() {
+    public IntegerProperty itemStockProperty() {
+        return itemStock;
+    }
+
+    public Integer getItemMinStock() {
         return itemMinStock.get();
     }
 
-    public void setItemMinStock(String itemMinStock) {
+    public void setItemMinStock(Integer itemMinStock) {
         this.itemMinStock.set(itemMinStock);
     }
 

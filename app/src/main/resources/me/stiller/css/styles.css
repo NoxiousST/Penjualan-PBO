@@ -431,7 +431,7 @@
 .col {
     -fx-border-width: 0;
     -fx-font-size: 14;
-    -fx-font-family: 'Rileno Sans Regular';
+    -fx-font-family: 'Louis George Cafe Bold';
     -fx-text-fill: -text;
     -fx-alignment: center;
 }
@@ -439,7 +439,7 @@
 .dcol {
     -fx-border-width: 0;
     -fx-font-size: 14;
-    -fx-font-family: 'Rileno Sans Regular';
+    -fx-font-family: 'Louis George Cafe Bold';
     -fx-text-fill: -text;
     -fx-alignment: top-center;
 }

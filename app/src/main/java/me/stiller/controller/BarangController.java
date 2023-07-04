@@ -245,8 +245,8 @@ public class BarangController implements Initializable {
             barang.setItemName(iname.getText());
             barang.setItemUnit(iunit.getValue());
             barang.setItemPrice(Double.parseDouble(iprice.getText()));
-            barang.setItemStock(istock.getText());
-            barang.setItemMinStock(imin.getText());
+            barang.setItemStock(Integer.parseInt(istock.getText()));
+            barang.setItemMinStock(Integer.parseInt(imin.getText()));
             if (!editSelected) {
                 if (server.insert(barang)) mainController.setDialog(true, "Item added successfully");
                 else mainController.setDialog(true, "There was an error while adding item");
@@ -358,8 +358,8 @@ public class BarangController implements Initializable {
         iname.setText(barang.getItemName());
         iunit.setValue(barang.getItemUnit());
         iprice.setText(String.valueOf(barang.getItemPrice()));
-        istock.setText(barang.getItemStock());
-        imin.setText(barang.getItemMinStock());
+        istock.setText(barang.getItemStock().toString());
+        imin.setText(barang.getItemMinStock().toString());
     }
 
     private void print() {
@@ -402,8 +402,8 @@ public class BarangController implements Initializable {
             dataRow.createCell(0).setCellValue(Integer.parseInt(b.getItemId()));
             dataRow.createCell(1).setCellValue(b.getItemName());
             dataRow.createCell(2).setCellValue(b.getItemUnit());
-            dataRow.createCell(4).setCellValue(Integer.parseInt(b.getItemStock()));
-            dataRow.createCell(5).setCellValue(Integer.parseInt(b.getItemMinStock()));
+            dataRow.createCell(4).setCellValue(b.getItemStock());
+            dataRow.createCell(5).setCellValue(b.getItemMinStock());
             XSSFCell priceCell = dataRow.createCell(3);
             priceCell.setCellValue(b.getItemPrice());
             priceCell.setCellStyle(priceStyle);

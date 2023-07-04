@@ -1,6 +1,10 @@
 package me.stiller.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.*;
 import com.jfoenix.controls.cells.editors.base.JFXTreeTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
@@ -17,16 +21,13 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import me.stiller.Main;
 import me.stiller.Server;
 import me.stiller.data.models.Barang;
-import me.stiller.data.models.Supplier;
+import me.stiller.data.models.SuppliedItem;
 import me.stiller.data.models.Supplier;
 import me.stiller.repository.DataRepository;
 import net.sf.jasperreports.engine.*;
@@ -35,9 +36,6 @@ import net.sf.jasperreports.view.JasperViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -50,8 +48,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static me.stiller.utils.Helper.getExportPath;
-import static me.stiller.utils.Helper.getIcon;
+import static me.stiller.utils.Helper.*;
 
 public class SupplierController implements Initializable {
 
@@ -62,7 +59,7 @@ public class SupplierController implements Initializable {
     private JFXTreeTableView<Supplier> table;
 
     @FXML
-    private JFXTreeTableColumn<Supplier, String> cselect, cid, cname, cemail, caddress, ccity, citem, caction;
+    private JFXTreeTableColumn<Supplier, String> cselect, cid, cname, cemail, caddress, citem, caction;
 
     @FXML
     private Pagination pagination;
@@ -74,14 +71,15 @@ public class SupplierController implements Initializable {
     private Label pageCount;
 
     @FXML
-    private JFXTextField search, iId, iName, iEmail, iAddress, iCity;
+    private JFXTextField search, iId, iName, iEmail, iAddress, itemName, itemPrice;
 
     @FXML
-    private JFXComboBox<String> iItem;
+    private JFXComboBox<String> itemId, itemIndex;
 
     @Inject
     DataRepository dataRepository;
 
+    private ObjectMapper mapper = new ObjectMapper();
     private final Server server = new Server();
     private final ArrayList<JFXTreeTableColumn<Supplier, String>> columns = new ArrayList<>();
     private final ArrayList<JFXTextField> inputs = new ArrayList<>();
@@ -104,9 +102,10 @@ public class SupplierController implements Initializable {
         mainApplication.getComponent().inject(this);
 
         list = dataRepository.getSupplierList();
-        columns.addAll(List.of(cselect, cid, cname, cemail, caddress, ccity, citem, caction));
-        inputs.addAll(List.of(iId, iName, iEmail, iAddress, iCity));
-        iItem.getItems().setAll(dataRepository.getBarangIds());
+        columns.addAll(List.of(cselect, cid, cname, cemail, caddress, citem, caction));
+        inputs.addAll(List.of(iId, iName, iEmail, iAddress, itemName, itemPrice));
+        itemId.getItems().setAll(dataRepository.getBarangIds());
+        itemIndex.getItems().add("New");
         initializeTable();
         setForm();
 
@@ -126,178 +125,50 @@ public class SupplierController implements Initializable {
         cname.setCellValueFactory(new TreeItemPropertyValueFactory<>("supplierName"));
         cemail.setCellValueFactory(new TreeItemPropertyValueFactory<>("supplierEmail"));
         caddress.setCellValueFactory(new TreeItemPropertyValueFactory<>("supplierAddress"));
-        ccity.setCellValueFactory(new TreeItemPropertyValueFactory<>("supplierCity"));
 
         citem.setCellFactory(param -> new TreeTableCell<>() {
-            final VBox vbox = new VBox();
             final HBox hbox = new HBox();
-            final Label label = new Label();
-            final JFXButton action = new JFXButton();
-            final JFXListView<Label> listMenu = new JFXListView<>();
-            final JFXPopup popup = new JFXPopup(listMenu);
-            final JFXComboBox<String> comboBox = new JFXComboBox<>();
-            StringBuilder sb = new StringBuilder();
+            final VBox vbox = new VBox();
 
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (getTableRow().getItem() != null) {
-                    Supplier supplier = getTableRow().getItem();
-                    sb = new StringBuilder(supplier.getItemId());
-                    caction.setMaxWidth(60);
+                    try {
+                        Supplier supplier = getTableRow().getItem();
+                        JsonNode jsonNode = mapper.readTree(supplier.getItemId());
+                        List<SuppliedItem> listSupplied = new ArrayList<>();
+                        for (JsonNode node : jsonNode) {
+                            String id = node.get("itemId").asText();
+                            String name = node.get("itemName").asText();
+                            double price = node.get("itemPrice").asDouble();
 
-                    listMenu.getStyleClass().add("popup-list");
-                    listMenu.getItems().setAll(new Label("Edit"), new Label("Delete"), new Label("Add Item"), new Label("Remove Item"));
-                    listMenu.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
-                    popup.getStyleClass().add("popup");
-                    action.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    action.setRipplerFill(Paint.valueOf("white"));
-                    action.setGraphic(getIcon("action"));
-                    action.setOnMouseClicked(event -> {
-                        int size = intoList(supplier.getItemId()).size();
-                        listMenu.getItems().get(3).setDisable(size <= 1);
-                        popup.show(action,
-                                JFXPopup.PopupVPosition.TOP,
-                                JFXPopup.PopupHPosition.LEFT,
-                                event.getX(), event.getY());
-                    });
-
-                    listMenu.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-                        String[] splitArray = supplier.getItemId().split(",");
-                        ObservableList<String> listId = FXCollections.observableArrayList(splitArray);
-                        log.debug(listId.size());
-
-                        JFXListView<Label> itemIds = new JFXListView<>();
-                        itemIds.getStyleClass().add("popup-list");
-                        itemIds.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
-                        JFXPopup itemPopup = new JFXPopup(itemIds);
-                        itemPopup.getStyleClass().add("popup");
-
-                        if (newValue.intValue() == 0) {
-                            table.getSelectionModel().select(getIndex());
-                            editSelected = true;
-                            if (!table.getColumns().contains(cselect)) table.getColumns().add(0, cselect);
-                            setFormEdit(supplier);
-                            btnEdit.getStyleClass().setAll("btn-edit-selected");
-                            btnInsert.getStyleClass().setAll("btn-insert");
-                        } else if (newValue.intValue() == 1) {
-                            if (server.delete(supplier))
-                                mainController.setDialog(true, "Item removed successfully");
-                            else
-                                mainController.setDialog(false, "There was an error while removing supplier");
-                            inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
-                            dataRepository.setSupplierList(server.readSupplier());
-                            changeTableView(0);
-
-                        } else if (newValue.intValue() == 2) {
-                            comboBox.getItems().clear();
-                            dataRepository.getBarangList().forEach(barang -> {
-
-                                String str = supplier.getItemId();
-                                Pattern pattern = Pattern.compile("\\((\\d+)\\)");
-                                ArrayList<String> numbersList = new ArrayList<>();
-                                Matcher matcher = pattern.matcher(str);
-                                while (matcher.find()) {
-                                    String id = matcher.group(1);
-                                    numbersList.add(id);
-                                }
-
-                                if (!numbersList.contains(barang.getItemId())) {
-                                    String s = barang.getItemName() + " (" + barang.getItemId() + ")";
-                                    comboBox.getItems().add(s);
-                                }
-                            });
-
-                            comboBox.setVisible(true);
-                            comboBox.setManaged(true);
-                            comboBox.show();
-                            comboBox.requestFocus();
-
-                            comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oVal, nVal) -> {
-                                if (nVal != null) {
-                                    sb.append(", ").append(nVal);
-
-                                    supplier.setItemId(sb.toString());
-                                    server.update(supplier);
-                                    dataRepository.setSupplierList(server.readSupplier());
-                                    changeTableView(0);
-                                    comboBox.getSelectionModel().clearSelection();
-                                    comboBox.setVisible(false);
-                                    comboBox.setManaged(false);
-                                    table.refresh();
-                                }
-                            });
-                        } else if (newValue.intValue() == 3 && !listMenu.getItems().get(3).isDisabled()) {
-                            String str = supplier.getItemId();
-
-                            comboBox.getItems().setAll(intoList(str));
-                            comboBox.setVisible(true);
-                            comboBox.setManaged(true);
-                            comboBox.show();
-                            comboBox.requestFocus();
-
-                            comboBox.getSelectionModel().selectedItemProperty().addListener((obs, oVal, nVal) -> {
-                                if (nVal != null) {
-                                    List<String> mList = intoList(supplier.getItemId());
-                                    mList.remove(nVal);
-                                    String mItem = intoString(mList);
-                                    supplier.setItemId(mItem);
-                                    server.update(supplier);
-                                    dataRepository.setSupplierList(server.readSupplier());
-                                    changeTableView(0);
-                                    comboBox.getSelectionModel().clearSelection();
-                                    comboBox.setVisible(false);
-                                    comboBox.setManaged(false);
-                                    table.refresh();
-                                }
-                            });
+                            listSupplied.add(new SuppliedItem(id, name, price));
                         }
-                    });
 
-                    comboBox.focusedProperty().addListener((observable, oldValue, newValue) -> {
-                        if (!newValue) {
-                            comboBox.setVisible(false);
-                            comboBox.setManaged(false);
-                        }
-                    });
+                        listSupplied.forEach(s -> {
+                            Label l = new Label(s.getItemId() + "  ~  " + s.getItemName() + "  ~  " + formatPrice(s.getItemPrice()));
+                            l.setAlignment(Pos.CENTER);
+                            vbox.getChildren().add(l);
+                        });
 
+                        vbox.setAlignment(Pos.CENTER);
+                        vbox.setSpacing(6);
+                        hbox.getChildren().setAll(vbox);
+                        hbox.setAlignment(Pos.CENTER);
 
-                    hbox.getChildren().setAll(label, action);
-                    HBox.setHgrow(label, Priority.ALWAYS);
-                    widthProperty().addListener((observable, oldValue, newValue) -> {
-                        label.setMaxWidth(newValue.intValue());
-                    });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-                    label.setAlignment(Pos.CENTER);
-                    label.setText(sb.toString());
-
-                    comboBox.setVisible(false);
-                    comboBox.setManaged(false);
-                    comboBox.getStyleClass().add("combobox");
-
-                    comboBox.setOnMouseClicked(event -> {
-                        comboBox.getSelectionModel().clearSelection();
-                        comboBox.hide();
-                    });
-
-                    vbox.getChildren().setAll(hbox, comboBox);
-                    vbox.setAlignment(Pos.CENTER);
-
-                    listMenu.setOnMouseClicked(e -> Platform.runLater(() -> {
-                        listMenu.getSelectionModel().clearSelection();
-                        popup.hide();
-                    }));
-                }
-
-                if (empty) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    setGraphic(vbox);
-                    setText(null);
+                    if (empty) {
+                        setGraphic(null);
+                        setText(null);
+                    } else {
+                        setGraphic(hbox);
+                        setText(null);
+                    }
                 }
             }
 
@@ -354,17 +225,120 @@ public class SupplierController implements Initializable {
             }
         });
 
+        caction.setMaxWidth(72);
+        caction.setMinWidth(72);
+        caction.setCellFactory(param -> new JFXTreeTableCell<>() {
+            final JFXButton action = new JFXButton();
+            final JFXListView<Label> listMenu = new JFXListView<>();
+            final JFXPopup popup = new JFXPopup(listMenu);
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (getTableRow().getItem() != null) {
+                    Supplier supplier = getTableRow().getItem();
+
+                    listMenu.getStyleClass().add("popup-list");
+                    listMenu.getItems().setAll(new Label("Edit"), new Label("Delete"), new Label("Remove Item"));
+                    listMenu.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+                    popup.getStyleClass().add("popup");
+                    action.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                    action.setRipplerFill(Paint.valueOf("white"));
+                    action.setGraphic(getIcon("action"));
+                    action.setOnMouseClicked(event -> {
+                        int size = itemsToList(supplier).size();
+                        listMenu.getItems().get(2).setDisable(size <= 1);
+                        popup.show(action,
+                                JFXPopup.PopupVPosition.TOP,
+                                JFXPopup.PopupHPosition.LEFT,
+                                event.getX(), event.getY());
+                    });
+
+                    listMenu.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+                        JFXListView<Label> itemIds = new JFXListView<>();
+                        itemIds.getStyleClass().add("popup-list");
+                        itemIds.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+                        JFXPopup itemPopup = new JFXPopup(itemIds);
+                        itemPopup.getStyleClass().add("popup");
+
+                        if (newValue.intValue() == 0) {
+                            table.getSelectionModel().select(getIndex());
+                            editSelected = true;
+                            if (!table.getColumns().contains(cselect)) table.getColumns().add(0, cselect);
+                            setFormEdit(supplier);
+                            btnEdit.getStyleClass().setAll("btn-edit-selected");
+                            btnInsert.getStyleClass().setAll("btn-insert");
+                        } else if (newValue.intValue() == 1) {
+                            if (server.delete(supplier))
+                                mainController.setDialog(true, "Item removed successfully");
+                            else
+                                mainController.setDialog(false, "There was an error while removing supplier");
+                            inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
+                            dataRepository.setSupplierList(server.readSupplier());
+                            changeTableView(0);
+                        } else if (newValue.intValue() == 2 && !listMenu.getItems().get(2).isDisabled()) {
+                            JFXListView<String> itemList = new JFXListView<>();
+                            JFXPopup itemsPopup = new JFXPopup(itemList);
+                            itemList.getStyleClass().add("popup-list");
+                            itemsPopup.getStyleClass().add("popup");
+
+                            List<SuppliedItem> sp = itemsToList(supplier);
+                            for (int i = 0; i < sp.size(); i++) {
+                                itemList.getItems().add(String.valueOf(i));
+                            }
+
+                            itemsPopup.show(action,
+                                    JFXPopup.PopupVPosition.TOP,
+                                    JFXPopup.PopupHPosition.LEFT);
+
+                            itemList.getSelectionModel().selectedIndexProperty().addListener((obs, oVal, nVal) -> {
+                                sp.remove(nVal.intValue());
+                                String items = mapper.valueToTree(sp).toString();
+                                supplier.setItemId(items);
+                                if (server.update(supplier)) mainController.setDialog(true, "Data updated successfully");
+
+                                inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
+                                dataRepository.setSupplierList(server.readSupplier());
+                                changeTableView(0);
+                                table.refresh();
+                            });
+
+                            itemList.setOnMouseClicked(e -> Platform.runLater(() -> {
+                                itemList.getSelectionModel().clearSelection();
+                                itemsPopup.hide();
+                            }));
+                        }
+                    });
+
+                    listMenu.setOnMouseClicked(e -> Platform.runLater(() -> {
+                        listMenu.getSelectionModel().clearSelection();
+                        popup.hide();
+                    }));
+                }
+
+                if (empty) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    setGraphic(action);
+                    setText(null);
+                }
+            }
+        });
+
         TreeItem<Supplier> root = new RecursiveTreeItem<>(dataRepository.getSupplierList(), RecursiveTreeObject::getChildren);
         table.getColumns().setAll(columns);
         table.getColumns().remove(cselect);
-        table.getColumns().remove(caction);
         table.setRoot(root);
         table.setShowRoot(false);
         setFilterPagination();
     }
 
     private void setForm() {
-        iItem.valueProperty().set(null);
+        itemId.valueProperty().set(null);
         btnCancel.setGraphic(getIcon("close"));
         btnConfirm.setGraphic(getIcon("check"));
         btnPref.setGraphic(getIcon("left"));
@@ -372,12 +346,15 @@ public class SupplierController implements Initializable {
 
         btnInsert.setOnMouseClicked(event -> {
             inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
-            iItem.valueProperty().set(null);
+            itemId.valueProperty().set(null);
+            itemIndex.getItems().setAll("New");
+            itemIndex.setValue("New");
 
             btnInsert.getStyleClass().setAll("btn-insert-selected");
             btnEdit.getStyleClass().setAll("btn-edit");
             editSelected = false;
             table.getColumns().remove(cselect);
+            table.refresh();
         });
 
         btnEdit.setOnMouseClicked(event -> {
@@ -387,33 +364,52 @@ public class SupplierController implements Initializable {
             editSelected = true;
             if (!table.getColumns().contains(cselect))
                 table.getColumns().add(0, cselect);
+            table.refresh();
         });
 
         btnConfirm.setOnMouseClicked(event -> {
-            Supplier supplier = new Supplier();
-            supplier.setSupplierId(iId.getText());
-            supplier.setSupplierName(iName.getText());
-            supplier.setSupplierEmail(iEmail.getText());
-            supplier.setSupplierAddress(iAddress.getText());
-            supplier.setSupplierCity(iCity.getText());
+            try {
+                Supplier supplier = new Supplier();
+                supplier.setSupplierId(iId.getText());
+                supplier.setSupplierName(iName.getText());
+                supplier.setSupplierEmail(iEmail.getText());
+                supplier.setSupplierAddress(iAddress.getText());
 
-            Barang barang = dataRepository.getBarang(iItem.getValue());
-            supplier.setItemId(barang.getItemName() + " (" + barang.getItemId() + ")");
-            if (!editSelected) {
-                if (server.insert(supplier)) mainController.setDialog(true, "Item added successfully");
-                else mainController.setDialog(false, "There was an error while adding supplier");
-            } else {
-                if (server.update(supplier)) mainController.setDialog(true, "Item updated successfully");
-                else mainController.setDialog(false, "There was an error while updating the data");
+                String id = itemId.getValue();
+                String name = itemName.getText();
+                String price = itemPrice.getText();
+                SuppliedItem newItem = new SuppliedItem(id, name, Double.parseDouble(price));
+
+                if (!editSelected) {
+                    List<SuppliedItem> newSuppliedItem = new ArrayList<>(List.of(newItem));
+                    String newItems = mapper.valueToTree(newSuppliedItem).toString();
+                    supplier.setItemId(newItems);
+                    if (server.insert(supplier)) mainController.setDialog(true, "Item added successfully");
+                    else mainController.setDialog(false, "There was an error while adding supplier");
+                } else {
+                    Supplier sp = dataRepository.getSelectedSupplier();
+                    List<SuppliedItem> suppliedItem = itemsToList(sp);
+                    if (itemIndex.getValue().equals("New")) suppliedItem.add(newItem);
+                    else suppliedItem.set(Integer.parseInt(itemIndex.getValue()), newItem);
+
+                    String items = mapper.valueToTree(suppliedItem).toString();
+                    supplier.setItemId(items);
+
+                    if (server.update(supplier)) mainController.setDialog(true, "Item updated successfully");
+                    else mainController.setDialog(false, "There was an error while updating the data");
+                }
+                inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
+                dataRepository.setSupplierList(server.readSupplier());
+                changeTableView(0);
+                table.refresh();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
-            dataRepository.setSupplierList(server.readSupplier());
-            changeTableView(0);
         });
 
         btnCancel.setOnMouseClicked(event -> {
             inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
-            iItem.valueProperty().set(null);
+            itemId.valueProperty().set(null);
 
             btnInsert.getStyleClass().setAll("btn-insert-selected");
             btnEdit.getStyleClass().setAll("btn-edit");
@@ -433,13 +429,59 @@ public class SupplierController implements Initializable {
             if (index < pagination.getPageCount()) pagination.setCurrentPageIndex(index + 1);
         });
 
+        itemId.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            Barang barang = dataRepository.getBarang(newValue.intValue());
+            dataRepository.setSelectedBarang(barang);
+            itemName.setText(barang.getItemName());
+        });
+
         btnPrint.disableProperty().bind(Bindings.isEmpty(list));
         btnExport.disableProperty().bind(Bindings.isEmpty(list));
         btnConfirm.disableProperty().bind((iName.textProperty().isEmpty())
                 .or(iEmail.textProperty().isNull())
                 .or(iAddress.textProperty().isEmpty())
-                .or(iCity.textProperty().isEmpty())
-                .or(iItem.valueProperty().isNull()));
+                .or(itemId.valueProperty().isNull()));
+    }
+
+    private void setFormEdit(Supplier supplier) {
+        dataRepository.setSelectedSupplier(supplier);
+        iId.setText(supplier.getSupplierId());
+        iName.setText(supplier.getSupplierName());
+        iEmail.setText(supplier.getSupplierEmail());
+        iAddress.setText(supplier.getSupplierAddress());
+
+        List<SuppliedItem> listSupplied = itemsToList(supplier);
+        itemIndex.getItems().clear();
+        for (int i = 0; i < listSupplied.size(); i++) {
+            itemIndex.getItems().add(String.valueOf(i));
+        }
+        itemIndex.getItems().add("New");
+        itemIndex.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.equals("New")) {
+
+            } else {
+                SuppliedItem sp = listSupplied.get(Integer.parseInt(newValue));
+                itemId.setValue(sp.getItemId());
+                itemPrice.setText(String.valueOf(sp.getItemPrice()));
+            }
+        });
+    }
+
+    private List<SuppliedItem> itemsToList(Supplier supplier) {
+        try {
+            JsonNode jsonNode = mapper.readTree(supplier.getItemId());
+            List<SuppliedItem> listSupplied = new ArrayList<>();
+            for (JsonNode node : jsonNode) {
+                String id = node.get("itemId").asText();
+                String name = node.get("itemName").asText();
+                double price = node.get("itemPrice").asDouble();
+                listSupplied.add(new SuppliedItem(id, name, price));
+            }
+
+            return listSupplied;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void changeTableView(int index) {
@@ -504,15 +546,6 @@ public class SupplierController implements Initializable {
         pageCount.setText("Page " + (pagination.getCurrentPageIndex() + 1) + " of " + pages);
     }
 
-    private void setFormEdit(Supplier supplier) {
-        iId.setText(supplier.getSupplierId());
-        iName.setText(supplier.getSupplierName());
-        iEmail.setText(supplier.getSupplierEmail());
-        iAddress.setText(supplier.getSupplierAddress());
-        iCity.setText(supplier.getSupplierCity());
-        iItem.setValue(supplier.getItemId());
-    }
-
     private void print() {
         try {
             JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(list);
@@ -540,8 +573,7 @@ public class SupplierController implements Initializable {
         headerRow.createCell(1).setCellValue("Nama");
         headerRow.createCell(2).setCellValue("Email");
         headerRow.createCell(3).setCellValue("Alamat");
-        headerRow.createCell(4).setCellValue("Kota");
-        headerRow.createCell(5).setCellValue("Item ID");
+        headerRow.createCell(4).setCellValue("Item");
 
         int rowNum = 1;
         for (Supplier b : list) {
@@ -550,8 +582,7 @@ public class SupplierController implements Initializable {
             dataRow.createCell(1).setCellValue(b.getSupplierName());
             dataRow.createCell(2).setCellValue(b.getSupplierEmail());
             dataRow.createCell(3).setCellValue(b.getSupplierAddress());
-            dataRow.createCell(4).setCellValue(b.getSupplierCity());
-            dataRow.createCell(5).setCellValue(Integer.parseInt(b.getItemId()));
+            dataRow.createCell(4).setCellValue(Integer.parseInt(b.getItemId()));
         }
 
         for (int i = 0; i <= 5; i++) sheet.autoSizeColumn(i);

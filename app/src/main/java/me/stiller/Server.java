@@ -48,8 +48,8 @@ public class Server {
                         resultSet.getString(2),
                         resultSet.getString(3),
                         resultSet.getDouble(4),
-                        resultSet.getString(5),
-                        resultSet.getString(6)
+                        resultSet.getInt(5),
+                        resultSet.getInt(6)
                 );
                 list.add(barang);
             }
@@ -95,8 +95,7 @@ public class Server {
                         resultSet.getString(2),
                         resultSet.getString(3),
                         resultSet.getString(4),
-                        resultSet.getString(5),
-                        resultSet.getString(6)
+                        resultSet.getString(5)
                 );
                 list.add(supplier);
             }
@@ -144,8 +143,26 @@ public class Server {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
         return jualList;
+    }
+
+    public ArrayList<Pembelian> readPembelian() {
+        ArrayList<Pembelian> list = new ArrayList<>();
+        try {
+            PreparedStatement statement = getConnection().prepareStatement("SELECT * FROM pembelian");
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Pembelian pembelian = new Pembelian(
+                        resultSet.getString(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3)
+                );
+                list.add(pembelian);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
     }
 
     public User loginUser(String user, String password) {
@@ -206,8 +223,8 @@ public class Server {
             statement.setString(1, barang.getItemName());
             statement.setString(2, barang.getItemUnit());
             statement.setDouble(3, barang.getItemPrice());
-            statement.setString(4, barang.getItemStock());
-            statement.setString(5, barang.getItemMinStock());
+            statement.setInt(4, barang.getItemStock());
+            statement.setInt(5, barang.getItemMinStock());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
@@ -231,21 +248,18 @@ public class Server {
     }
 
     public boolean insert(Supplier supplier) {
-
         LogManager.getLogger().debug(supplier.getSupplierName());
         LogManager.getLogger().debug(supplier.getSupplierEmail());
         LogManager.getLogger().debug(supplier.getSupplierAddress());
-        LogManager.getLogger().debug(supplier.getSupplierCity());
         LogManager.getLogger().debug(supplier.getItemId());
 
-        String sql = "INSERT INTO supplier (name, email, address, city, itemId) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO supplier (name, email, address, itemId) VALUES (?, ?, ?, ?)";
         try {
             PreparedStatement statement = getConnection().prepareStatement(sql);
             statement.setString(1, supplier.getSupplierName());
             statement.setString(2, supplier.getSupplierEmail());
             statement.setString(3, supplier.getSupplierAddress());
-            statement.setString(4, supplier.getSupplierCity());
-            statement.setString(5, supplier.getItemId());
+            statement.setString(4, supplier.getItemId());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
@@ -270,6 +284,23 @@ public class Server {
                 detailStatement.executeUpdate();
             }
             return headerStatement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public boolean insert(Pembelian pembelian) {
+        LogManager.getLogger().debug(pembelian.getOrderId());
+        LogManager.getLogger().debug(pembelian.getOrderDate());
+        LogManager.getLogger().debug(pembelian.getItems());
+
+        String sql = "INSERT INTO pembelian (orderId, orderDate, items) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement statement = getConnection().prepareStatement(sql);
+            statement.setString(1, pembelian.getOrderId());
+            statement.setString(2, pembelian.getOrderDate());
+            statement.setString(3, pembelian.getItems());
+            return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
         }
@@ -326,8 +357,8 @@ public class Server {
             statement.setString(1, barang.getItemName());
             statement.setString(2, barang.getItemUnit());
             statement.setDouble(3, barang.getItemPrice());
-            statement.setString(4, barang.getItemStock());
-            statement.setString(5, barang.getItemMinStock());
+            statement.setInt(4, barang.getItemStock());
+            statement.setInt(5, barang.getItemMinStock());
             statement.setString(6, barang.getItemId());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -355,15 +386,14 @@ public class Server {
 
     public boolean update(Supplier supplier) {
         Connection connection = new Server().getConnection();
-        String sql = "UPDATE supplier SET name = ?, email = ?, address = ?, city = ?, itemId = ? WHERE id = ?";
+        String sql = "UPDATE supplier SET name = ?, email = ?, address = ?, itemId = ? WHERE id = ?";
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, supplier.getSupplierName());
             statement.setString(2, supplier.getSupplierEmail());
             statement.setString(3, supplier.getSupplierAddress());
-            statement.setString(4, supplier.getSupplierCity());
-            statement.setString(5, supplier.getItemId());
-            statement.setString(6, supplier.getSupplierId());
+            statement.setString(4, supplier.getItemId());
+            statement.setString(5, supplier.getSupplierId());
             LogManager.getLogger().debug(statement.executeUpdate());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -420,6 +450,22 @@ public class Server {
                 return lastIndex + 1;
             }
             return 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int getLastPembelian() {
+        Connection connection = new Server().getConnection();
+        String sql = "SELECT MAX(orderId) FROM pembelian";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                int lastIndex = resultSet.getInt(1);
+                return lastIndex + 1;
+            }
+            return 1;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

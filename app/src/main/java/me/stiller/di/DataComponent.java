@@ -15,5 +15,7 @@ public interface DataComponent {
     void inject(KonsumenController controller);
     void inject(SupplierController controller);
     void inject(TransaksiController controller);
+    void inject(TransaksiBeliController controller);
     void inject(PenjualanController controller);
+    void inject(PembelianController controller);
 }

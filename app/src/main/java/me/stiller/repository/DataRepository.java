@@ -4,6 +4,7 @@ import javafx.collections.ObservableList;
 import me.stiller.data.models.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public interface DataRepository {
@@ -23,9 +24,18 @@ public interface DataRepository {
     void setSupplierList(ArrayList<Supplier> list);
     Supplier getSupplier(int position);
     Supplier getSupplier(String id);
+    Supplier getSelectedSupplier();
+    void setSelectedSupplier(Supplier supplier);
+
+    ObservableList<DetailPembelian> getDetailPembelian();
+    void setDetailPembelian(List<DetailPembelian> list);
+
+    ObservableList<Pembelian> getPembelianList();
+    void setPembelianList(ArrayList<Pembelian> list);
 
     ArrayList<String> getBarangIds();
     ArrayList<String> getKonsumenIds();
+    ArrayList<String> getSupplierIds();
 
     ObservableList<Jual> getPenjualanList();
     void setPenjualanList(ArrayList<Jual> list);
