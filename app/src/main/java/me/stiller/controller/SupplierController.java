@@ -30,9 +30,6 @@ import me.stiller.data.models.Barang;
 import me.stiller.data.models.SuppliedItem;
 import me.stiller.data.models.Supplier;
 import me.stiller.repository.DataRepository;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -65,7 +62,7 @@ public class SupplierController implements Initializable {
     private Pagination pagination;
 
     @FXML
-    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnPrint, btnExport;
+    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnExport;
 
     @FXML
     private Label pageCount;
@@ -415,7 +412,6 @@ public class SupplierController implements Initializable {
             btnEdit.getStyleClass().setAll("btn-edit");
         });
 
-        btnPrint.setOnMouseClicked(event -> print());
         btnExport.setOnMouseClicked(event -> export());
 
         btnPref.setOnAction(event -> {
@@ -435,7 +431,6 @@ public class SupplierController implements Initializable {
             itemName.setText(barang.getItemName());
         });
 
-        btnPrint.disableProperty().bind(Bindings.isEmpty(list));
         btnExport.disableProperty().bind(Bindings.isEmpty(list));
         btnConfirm.disableProperty().bind((iName.textProperty().isEmpty())
                 .or(iEmail.textProperty().isNull())
@@ -546,43 +541,42 @@ public class SupplierController implements Initializable {
         pageCount.setText("Page " + (pagination.getCurrentPageIndex() + 1) + " of " + pages);
     }
 
-    private void print() {
-        try {
-            JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(list);
-            Map<String, Object> param = new HashMap<>();
-
-            param.put("title", "Laporan");
-            param.put("itemDataSource", itemDataSource);
-            JasperReport design = JasperCompileManager.compileReport(Objects.requireNonNull(
-                    Main.class.getResource("jasper/supplier.jrxml")).getPath());
-
-            JasperPrint jasperPrint = JasperFillManager.fillReport(design, param, new JREmptyDataSource());
-
-            JasperViewer.viewReport(jasperPrint, false);
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void export() {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Supplier");
 
         XSSFRow headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("ID Supplier");
-        headerRow.createCell(1).setCellValue("Nama");
-        headerRow.createCell(2).setCellValue("Email");
-        headerRow.createCell(3).setCellValue("Alamat");
-        headerRow.createCell(4).setCellValue("Item");
+        headerRow.createCell(0).setCellValue("Supplier ID");
+        headerRow.createCell(1).setCellValue("Supplier Name");
+        headerRow.createCell(2).setCellValue("Supplier Email");
+        headerRow.createCell(3).setCellValue("Address");
+        headerRow.createCell(4).setCellValue("Item ID");
+        headerRow.createCell(5).setCellValue("Item Name");
+        headerRow.createCell(6).setCellValue("Item Price");
 
         int rowNum = 1;
-        for (Supplier b : list) {
+        for (Supplier supplier : filteredData) {
             XSSFRow dataRow = sheet.createRow(rowNum++);
-            dataRow.createCell(0).setCellValue(Integer.parseInt(b.getItemId()));
-            dataRow.createCell(1).setCellValue(b.getSupplierName());
-            dataRow.createCell(2).setCellValue(b.getSupplierEmail());
-            dataRow.createCell(3).setCellValue(b.getSupplierAddress());
-            dataRow.createCell(4).setCellValue(Integer.parseInt(b.getItemId()));
+            dataRow.createCell(0).setCellValue(Integer.parseInt(supplier.getSupplierId()));
+            dataRow.createCell(1).setCellValue(supplier.getSupplierName());
+            dataRow.createCell(2).setCellValue(supplier.getSupplierEmail());
+            dataRow.createCell(3).setCellValue(supplier.getSupplierAddress());
+
+            try {
+                JsonNode jsonNode = mapper.readTree(supplier.getItemId());
+                int loop = 0;
+                for (JsonNode node : jsonNode) {
+                    dataRow.createCell(4).setCellValue(node.get("itemId").asInt());
+                    dataRow.createCell(5).setCellValue(node.get("itemName").asText());
+                    dataRow.createCell(6).setCellValue(node.get("itemPrice").asDouble());
+                    loop++;
+                    if (loop != jsonNode.size())
+                        dataRow = sheet.createRow(rowNum++);
+                }
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         for (int i = 0; i <= 5; i++) sheet.autoSizeColumn(i);

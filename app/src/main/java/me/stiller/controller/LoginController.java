@@ -12,6 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -130,7 +131,8 @@ public class LoginController implements Initializable, RetrieveLogin {
             scene.setFill(Color.TRANSPARENT);
 
             Stage stage = new Stage();
-            //stage.initStyle(StageStyle.TRANSPARENT);
+            stage.initStyle(StageStyle.TRANSPARENT);
+            stage.getIcons().add(new Image(Objects.requireNonNull(Main.class.getResourceAsStream("images/icon.png"))));
             stage.setScene(scene);
             stage.show();
             newRoot.requestFocus();

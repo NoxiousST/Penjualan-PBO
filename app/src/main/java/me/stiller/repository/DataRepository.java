@@ -30,6 +30,7 @@ public interface DataRepository {
     ObservableList<DetailPembelian> getDetailPembelian();
     void setDetailPembelian(List<DetailPembelian> list);
 
+
     ObservableList<Pembelian> getPembelianList();
     void setPembelianList(ArrayList<Pembelian> list);
 
@@ -40,8 +41,8 @@ public interface DataRepository {
     ObservableList<Jual> getPenjualanList();
     void setPenjualanList(ArrayList<Jual> list);
 
-    ObservableList<Jual.DJual> getTrancationList();
-    void setTransactionList(ArrayList<Jual.DJual> list);
+    ObservableList<Jual.DJual> getTransaksiJualList();
+    void setTransaksiJualList(List<Jual.DJual> list);
 
     User getLoginUser();
     void setLoginUser(User user);

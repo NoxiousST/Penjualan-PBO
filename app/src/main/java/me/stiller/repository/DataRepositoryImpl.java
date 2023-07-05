@@ -169,12 +169,12 @@ public class DataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public ObservableList<Jual.DJual> getTrancationList() {
+    public ObservableList<Jual.DJual> getTransaksiJualList() {
         return transactionList;
     }
 
     @Override
-    public void setTransactionList(ArrayList<Jual.DJual> list) {
+    public void setTransaksiJualList(List<Jual.DJual> list) {
         transactionList.setAll(list);
     }
 

@@ -70,11 +70,6 @@
         </columnResizePolicy>
     </JFXTreeTableView>
     <HBox alignment="CENTER_RIGHT" spacing="4.0" styleClass="table-footer">
-        <JFXButton fx:id="btnPrint" ripplerFill="WHITE" styleClass="btn-control" text="Print">
-            <HBox.margin>
-                <Insets right="4.0"/>
-            </HBox.margin>
-        </JFXButton>
         <JFXButton fx:id="btnExport" ripplerFill="WHITE" styleClass="btn-control" text="Export">
             <HBox.margin>
                 <Insets left="4.0"/>

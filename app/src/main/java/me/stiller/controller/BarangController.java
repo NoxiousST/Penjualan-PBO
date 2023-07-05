@@ -23,9 +23,6 @@ import me.stiller.Main;
 import me.stiller.Server;
 import me.stiller.data.models.Barang;
 import me.stiller.repository.DataRepository;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -59,7 +56,7 @@ public class BarangController implements Initializable {
     private Pagination pagination;
 
     @FXML
-    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnPrint, btnExport;
+    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnExport;
 
     @FXML
     private Label pageCount;
@@ -267,7 +264,6 @@ public class BarangController implements Initializable {
             btnEdit.getStyleClass().setAll("btn-edit");
         });
 
-        btnPrint.setOnMouseClicked(event -> print());
         btnExport.setOnMouseClicked(event -> export());
 
         btnPref.setOnAction(event -> {
@@ -281,7 +277,6 @@ public class BarangController implements Initializable {
             if (index < pagination.getPageCount()) pagination.setCurrentPageIndex(index + 1);
         });
 
-        btnPrint.disableProperty().bind(Bindings.isEmpty(list));
         btnExport.disableProperty().bind(Bindings.isEmpty(list));
         btnConfirm.disableProperty().bind((iname.textProperty().isEmpty())
                 .or(iunit.valueProperty().isNull())
@@ -360,24 +355,6 @@ public class BarangController implements Initializable {
         iprice.setText(String.valueOf(barang.getItemPrice()));
         istock.setText(barang.getItemStock().toString());
         imin.setText(barang.getItemMinStock().toString());
-    }
-
-    private void print() {
-        try {
-            JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(list);
-            Map<String, Object> param = new HashMap<>();
-
-            param.put("title", "Laporan");
-            param.put("itemDataSource", itemDataSource);
-            JasperReport design = JasperCompileManager.compileReport(Objects.requireNonNull(
-                    Main.class.getResource("jasper/barang.jrxml")).getPath());
-
-            JasperPrint jasperPrint = JasperFillManager.fillReport(design, param, new JREmptyDataSource());
-
-            JasperViewer.viewReport(jasperPrint, false);
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
     }
 
     private void export() {

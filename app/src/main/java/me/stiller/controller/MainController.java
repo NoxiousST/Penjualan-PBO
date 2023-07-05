@@ -149,10 +149,10 @@ public class MainController implements Initializable {
                 case "BarangController" -> ((BarangController) controller).setParentController(this);
                 case "KonsumenController" -> ((KonsumenController) controller).setParentController(this);
                 case "SupplierController" -> ((SupplierController) controller).setParentController(this);
-                case "TransaksiController" -> ((TransaksiController) controller).setParentController(this);
+                case "TransaksiJualController" -> ((TransaksiJualController) controller).setParentController(this);
+                case "TransaksiBeliController" -> ((TransaksiBeliController) controller).setParentController(this);
                 case "PenjualanController" -> ((PenjualanController) controller).setParentController(this);
                 case "PembelianController" -> ((PembelianController) controller).setParentController(this);
-                case "TransaksiBeliController" -> ((TransaksiBeliController) controller).setParentController(this);
             }
             vbox.getChildren().setAll(childRoot);
 

@@ -21,9 +21,6 @@ import me.stiller.Server;
 import me.stiller.data.models.Konsumen;
 
 import me.stiller.repository.DataRepository;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -56,7 +53,7 @@ public class KonsumenController implements Initializable {
     private Pagination pagination;
 
     @FXML
-    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnPrint, btnExport;
+    private JFXButton btnCancel, btnConfirm, btnPref, btnNext, btnInsert, btnEdit, btnExport;
 
     @FXML
     private Label pageCount;
@@ -270,7 +267,6 @@ public class KonsumenController implements Initializable {
             btnEdit.getStyleClass().setAll("btn-edit");
         });
 
-        btnPrint.setOnMouseClicked(event -> print());
         btnExport.setOnMouseClicked(event -> export());
 
         btnPref.setOnAction(event -> {
@@ -287,7 +283,6 @@ public class KonsumenController implements Initializable {
             log.info(pagination.getPageCount());
         });
 
-        btnPrint.disableProperty().bind(Bindings.isEmpty(list));
         btnExport.disableProperty().bind(Bindings.isEmpty(list));
         btnConfirm.disableProperty().bind(((
                 iname.textProperty().isEmpty())
@@ -370,24 +365,6 @@ public class KonsumenController implements Initializable {
         ipostal.setText(konsumen.getCustomerPostal());
         iphone.setText(konsumen.getCustomerPhone());
         iemail.setText(konsumen.getCustomerEmail());
-    }
-
-    private void print() {
-        try {
-            JRBeanCollectionDataSource customerDataSource = new JRBeanCollectionDataSource(list);
-            Map<String, Object> param = new HashMap<>();
-
-            param.put("title", "Laporan");
-            param.put("customerDataSource", customerDataSource);
-            JasperReport design = JasperCompileManager.compileReport(Objects.requireNonNull(
-                    Main.class.getResource("jasper/konsumen.jrxml")).getPath());
-
-            JasperPrint jasperPrint = JasperFillManager.fillReport(design, param, new JREmptyDataSource());
-
-            JasperViewer.viewReport(jasperPrint, false);
-        } catch (JRException e) {
-            e.printStackTrace();
-        }
     }
 
     private void export() {

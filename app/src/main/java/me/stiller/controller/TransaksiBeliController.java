@@ -1,15 +1,13 @@
 package me.stiller.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.*;
 import com.jfoenix.controls.cells.editors.base.JFXTreeTableCell;
-import com.lowagie.text.Document;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Phrase;
+import com.lowagie.text.*;
+import com.lowagie.text.Font;
+import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -26,19 +24,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import me.stiller.Main;
 import me.stiller.Server;
 import me.stiller.data.models.*;
 import me.stiller.repository.DataRepository;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.inject.Inject;
+
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -71,7 +68,10 @@ public class TransaksiBeliController implements Initializable {
     private JFXButton bConfirm, bCancel, bPref, bNext, bSave, bDelete, bPrint;
 
     @FXML
-    private Label pageCount;
+    private Label pageCount, valTotal;
+
+    @FXML
+    private HBox fTotal;
 
     @FXML
     private Pagination pagination;
@@ -162,7 +162,11 @@ public class TransaksiBeliController implements Initializable {
     }
 
     private void initializeListener() {
-        list.addListener((ListChangeListener<DetailPembelian>) c -> changeTableView(0));
+        fTotal.setVisible(false);
+        list.addListener((ListChangeListener<DetailPembelian>) c -> {
+            if (!c.getList().isEmpty()) iItemPrice.setText(Strings.EMPTY);
+            changeTableView(0);
+        });
 
         iItemQuantity.textProperty().addListener((observable, oldValue, newValue) -> {
             if (selectedSupplied != null) validateQuantity(newValue);
@@ -204,11 +208,10 @@ public class TransaksiBeliController implements Initializable {
                 .or(iItemQuantity.textProperty().isEmpty())
                 .or(iItemTotal.textProperty().isEmpty()));
 
-        bSave.disableProperty().bind(Bindings.isEmpty(list)
-                .or(iSupplierId.valueProperty().isNull()));
-
+        bSave.disableProperty().bind(Bindings.isEmpty(list));
         bDelete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         bPrint.disableProperty().bind(Bindings.isEmpty(list));
+        fTotal.visibleProperty().bind(Bindings.isNotEmpty(list));
     }
 
     private void setForm() {
@@ -233,7 +236,6 @@ public class TransaksiBeliController implements Initializable {
                     dp.setItemQuantity(quantity);
                     dp.setItemTotal(dp.getItemPrice() * quantity);
                     itemExist = true;
-                    log.debug(itemExist);
                     break;
                 }
             }
@@ -311,13 +313,16 @@ public class TransaksiBeliController implements Initializable {
         ArrayList<DetailPembelian> sortedData = new ArrayList<>(
                 FXCollections.observableArrayList(filteredData.subList(Math.min(fromIndex, minIndex), minIndex)));
 
+        double total = 0;
         table.setRoot(null);
         TreeItem<DetailPembelian> rootItem = new TreeItem<>();
         for (DetailPembelian penjualan : sortedData) {
             TreeItem<DetailPembelian> item = new TreeItem<>(penjualan);
             rootItem.getChildren().add(item);
+            total += penjualan.getItemTotal();
         }
         table.setRoot(rootItem);
+        valTotal.setText(formatPrice(total));
     }
 
     private void setFilterPagination() {
@@ -350,7 +355,7 @@ public class TransaksiBeliController implements Initializable {
             if (currentIndex > pages - 1) {
                 pagination.setCurrentPageIndex(pages - 1);
             }
-            pageCount.setText("Page " + (pagination.getCurrentPageIndex() + 1) + " of " + pages);
+            pageCount.setText((pagination.getCurrentPageIndex() + 1) + " of " + pages);
             maxPageIndex.set(pages - 1);
         });
 
@@ -361,12 +366,12 @@ public class TransaksiBeliController implements Initializable {
 
         pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
             int index = newValue.intValue();
-            pageCount.setText("Page " + (index + 1) + " of " + pages);
+            pageCount.setText((index + 1) + " of " + pages);
             bNext.setDisable(newValue.intValue() >= maxPageIndex.intValue());
             log.info("Pages : " + pages);
             log.info("CURRENT " + newValue);
         });
-        pageCount.setText("Page " + (pagination.getCurrentPageIndex() + 1) + " of " + pages);
+        pageCount.setText((pagination.getCurrentPageIndex() + 1) + " of " + pages);
     }
 
     private void setFormEdit(DetailPembelian detailPembelian) {
@@ -396,55 +401,131 @@ public class TransaksiBeliController implements Initializable {
 
     private void print() {
         try {
+            BaseFont nLight = BaseFont.createFont(Main.class.getResource("fonts/NexaLight.otf").getPath(), "UTF-8", BaseFont.EMBEDDED);
+            BaseFont musticabf = BaseFont.createFont(Main.class.getResource("fonts/MusticaproSemibold-2OG5o.otf").getPath(), "UTF-8", BaseFont.EMBEDDED);
+            BaseFont kionabf = BaseFont.createFont(Main.class.getResource("fonts/Kiona-Regular.ttf").getPath(), "UTF-8", BaseFont.EMBEDDED);
+            Font nexaLight = new Font(nLight, 42f);
+            Font mustica = new Font(musticabf, 14f);
+            Font mustica12 = new Font(musticabf, 12f);
+            Font kiona = new Font(kionabf, 24f);
+
+            Font header = new Font(musticabf, 12f, 0, Color.WHITE);
+
             File tempFile = Files.createTempFile("temp", ".pdf").toFile();
             Document doc = new Document(PageSize.A4.rotate(), 20, 20, 20, 20);
             PdfWriter.getInstance(doc, new FileOutputStream(tempFile));
 
             doc.open();
 
-            PdfPTable info = new PdfPTable(2);
-            PdfPTable invoice = new PdfPTable(1);
+            PdfPTable info = new PdfPTable(1);
+            info.setWidthPercentage(100);
 
-            PdfPCell txtInvoiceNumber = new PdfPCell(new Phrase("Invoice Number"));
-            txtInvoiceNumber.setBorder(0);
-            invoice.addCell(txtInvoiceNumber);
+            PdfPCell invoiceText = new PdfPCell(new Phrase("I N V O I C E", nexaLight));
+            invoiceText.setPaddingBottom(12);
+            invoiceText.setBorder(0);
+            info.addCell(invoiceText);
 
-            PdfPCell invoiceNumber = new PdfPCell(new Phrase("1234567890"));
-            txtInvoiceNumber.setBorder(0);
-            invoice.addCell(txtInvoiceNumber);
-            invoice.addCell(invoiceNumber);
+            String id = String.format("%04d", Integer.parseInt(iOrderId.getText()));
+            LocalDate date = LocalDate.parse(iOrderDate.getText());
+            String invoice = "INV-" + date.getYear() + date.getMonthValue() + date.getDayOfMonth() + "-S" + id;
+            PdfPCell invoiceNumber = new PdfPCell(new Phrase(invoice, kiona));
+            invoiceNumber.setPaddingBottom(6);
+            invoiceNumber.setBorder(0);
+            info.addCell(invoiceNumber);
 
-            info.addCell(invoice);
-
+            PdfPCell invoiceDate = new PdfPCell(new Phrase("PEMBELIAN | " +
+                    date.getDayOfMonth() + " " + date.getMonth() + " " + date.getYear(), mustica));
+            invoiceDate.setPaddingBottom(16);
+            invoiceDate.setBorder(0);
+            info.addCell(invoiceDate);
             doc.add(info);
 
             PdfPTable mainTable = new PdfPTable(8);
-            mainTable.setWidthPercentage(100);
-            com.lowagie.text.Font fontHeader = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, java.awt.Color.WHITE);
-            com.lowagie.text.Font fontBody = FontFactory.getFont(FontFactory.HELVETICA, 11);
+            mainTable.setWidthPercentage(97);
+            Font fontBody = FontFactory.getFont(FontFactory.HELVETICA, 11);
 
             String[] headerTexts = {"#", "Supplier ID", "Supplier Name", "Item ID", "Item Name", "Item Price", "Quantity", "Item Total"};
-            java.awt.Color headerColor = java.awt.Color.decode("#2979ff");
-
+            int loop = 0;
             for (String headerText : headerTexts) {
-                PdfPCell headerCell = new PdfPCell(new Phrase(headerText, fontHeader));
-                headerCell.setBackgroundColor(headerColor);
+                PdfPCell headerCell = new PdfPCell(new Phrase(headerText, header));
+                if (loop == 0) headerCell.setPaddingLeft(4);
+                if (loop == 7) headerCell.setPaddingRight(4);
+                headerCell.setBorder(0);
+                headerCell.setPaddingTop(6);
+                headerCell.setPaddingBottom(6);
+                headerCell.setBackgroundColor(Color.decode("#384450"));
+                headerCell.setVerticalAlignment(PdfPCell.ALIGN_CENTER);
+                if (loop >= 5) {
+                    headerCell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+                }
                 mainTable.addCell(headerCell);
+                loop++;
             }
 
             int num = 1;
+            double total = 0;
             for (DetailPembelian dp : list) {
-                mainTable.addCell(new Phrase(String.valueOf(num++), fontBody));
-                mainTable.addCell(new Phrase(dp.getSupplierId(), fontBody));
-                mainTable.addCell(new Phrase(dp.getSupplierName(), fontBody));
-                mainTable.addCell(new Phrase(dp.getItemId(), fontBody));
-                mainTable.addCell(new Phrase(dp.getItemName(), fontBody));
-                mainTable.addCell(new Phrase(dp.getItemPriceFormatted(), fontBody));
-                mainTable.addCell(new Phrase(String.valueOf(dp.getItemQuantity()), fontBody));
-                mainTable.addCell(new Phrase(dp.getItemTotalFormatted(), fontBody));
+                total += dp.getItemTotal();
+                PdfPCell number = new PdfPCell(new Phrase(String.valueOf(num++), fontBody));
+                PdfPCell cell1 = new PdfPCell(new Phrase(dp.getSupplierId(), fontBody));
+                PdfPCell cell2 = new PdfPCell(new Phrase(dp.getSupplierName(), fontBody));
+                PdfPCell cell3 = new PdfPCell(new Phrase(dp.getItemId(), fontBody));
+                PdfPCell cell4 = new PdfPCell(new Phrase(dp.getItemName(), fontBody));
+                PdfPCell cell5 = new PdfPCell(new Phrase(dp.getItemPriceFormatted(), fontBody));
+                PdfPCell cell6 = new PdfPCell(new Phrase(String.valueOf(dp.getItemQuantity()), fontBody));
+                PdfPCell cell7 = new PdfPCell(new Phrase(dp.getItemTotalFormatted(), fontBody));
+                ArrayList<PdfPCell> cells = new ArrayList<>(List.of(number, cell1, cell2, cell3, cell4, cell5, cell6, cell7));
+                number.setPaddingLeft(4);
+                cell7.setPaddingRight(4);
+                loop = 0;
+                for (PdfPCell cell : cells) {
+                    cell.setBorder(0);
+                    cell.setPaddingTop(4);
+                    cell.setPaddingBottom(4);
+                    if (num % 2 == 0) cell.setBackgroundColor(Color.decode("#f0f0f0"));
+                    else cell.setBackgroundColor(Color.decode("#e6e6e6"));
+                    if (loop >= 5) {
+                        cell.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+                    }
+                    mainTable.addCell(cell);
+                    loop++;
+                }
             }
-
             doc.add(mainTable);
+
+            float[] width = {6, 1, 1};
+
+            PdfPTable tTotal = new PdfPTable(width);
+            tTotal.setWidthPercentage(97);
+
+
+            PdfPCell blank = new PdfPCell(new Phrase());
+            PdfPCell blank1 = new PdfPCell(new Phrase());
+            PdfPCell blank2 = new PdfPCell(new Phrase());
+            PdfPCell blank3 = new PdfPCell(new Phrase());
+
+            ArrayList<PdfPCell> blanks = new ArrayList<>(List.of(blank, blank1, blank2, blank3));
+            blanks.forEach(b -> {
+                b.setPaddingTop(12);
+                b.setBorder(0);
+                tTotal.addCell(b);
+            });
+
+            PdfPCell textTotal = new PdfPCell(new Phrase("TOTAL", mustica12));
+            textTotal.setPaddingTop(4);
+            textTotal.setBorder(0);
+            textTotal.setBorderWidthTop(2);
+            tTotal.addCell(textTotal);
+
+            PdfPCell valTotal = new PdfPCell(new Phrase(formatPrice(total), mustica12));
+            valTotal.setHorizontalAlignment(PdfPCell.ALIGN_RIGHT);
+            valTotal.setPaddingTop(4);
+            valTotal.setPaddingRight(4);
+            valTotal.setBorder(0);
+            valTotal.setBorderWidthTop(2);
+            tTotal.addCell(valTotal);
+
+            doc.add(tTotal);
             doc.close();
 
             Desktop.getDesktop().open(tempFile);

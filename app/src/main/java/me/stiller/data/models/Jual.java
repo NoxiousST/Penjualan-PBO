@@ -91,6 +91,7 @@ public class Jual extends RecursiveTreeObject<Jual> {
         DoubleProperty itemTotal = new SimpleDoubleProperty();
 
         StringProperty itemPriceFormatted = new SimpleStringProperty();
+        StringProperty itemQuantityFormatted = new SimpleStringProperty();
         StringProperty itemTotalFormatted = new SimpleStringProperty();
 
         public DJual() {}
@@ -102,6 +103,7 @@ public class Jual extends RecursiveTreeObject<Jual> {
             setItemQuantity(itemQuantity);
             setItemTotal(itemTotal);
             setItemPriceFormatted();
+            setItemQuantityFormatted();
             setItemTotalFormatted();
         }
 
@@ -175,6 +177,18 @@ public class Jual extends RecursiveTreeObject<Jual> {
 
         public void setItemPriceFormatted() {
             this.itemPriceFormatted.set(formatPrice(getItemPrice()));
+        }
+
+        public String getItemQuantityFormatted() {
+            return String.valueOf(getItemQuantity());
+        }
+
+        public StringProperty itemQuantityFormattedProperty() {
+            return itemQuantityFormatted;
+        }
+
+        public void setItemQuantityFormatted() {
+            this.itemQuantityFormatted.set(String.valueOf(getItemQuantity()));
         }
 
         public String getItemTotalFormatted() {
