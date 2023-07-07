@@ -51,7 +51,7 @@
         </VBox.margin>
     </HBox>
     <HBox alignment="CENTER" styleClass="table-header">
-        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Konsumen" HBox.hgrow="ALWAYS"/>
+        <Label maxWidth="Infinity" styleClass="table-name" text="Tabel Supplier" HBox.hgrow="ALWAYS"/>
         <JFXTextField fx:id="search" alignment="CENTER_RIGHT" prefWidth="150.0" promptText="Search Table"
                       styleClass="search"/>
     </HBox>

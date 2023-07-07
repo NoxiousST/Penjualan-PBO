@@ -391,6 +391,7 @@ public class PembelianController implements Initializable {
             dateCell.setCellValue(LocalDate.parse(pembelian.getOrderDate()));
             dateCell.setCellStyle(cellStyle);
 
+            int loop = 0;
             try {
                 JsonNode jsonNode = mapper.readTree(pembelian.getItems());
                 for (JsonNode node : jsonNode) {
@@ -408,28 +409,31 @@ public class PembelianController implements Initializable {
                     dataRow.createCell(6).setCellValue(itemPrice);
                     dataRow.createCell(7).setCellValue(itemQuantity);
                     dataRow.createCell(8).setCellValue(itemTotal);
-                    dataRow = sheet.createRow(rowNum++);
+                    if (loop != jsonNode.size()-1)
+                        dataRow = sheet.createRow(rowNum++);
+                    loop++;
                 }
 
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+        }
 
-            for (int i = 0; i <= 8; i++) {
-                sheet.autoSizeColumn(i);
-            }
+        for (int i = 0; i <= 8; i++) {
+            sheet.autoSizeColumn(i);
+        }
 
-            try (FileOutputStream fileOut = new FileOutputStream(getExportPath(root))) {
-                workbook.write(fileOut);
-                if (workbook.getSheet("Pembelian") != null) {
-                    mainController.setDialog(true, "Report succesfully exported to WorkBook");
-                }
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try (FileOutputStream fileOut = new FileOutputStream(getExportPath(root))) {
+            workbook.write(fileOut);
+            if (workbook.getSheet("Pembelian") != null) {
+                mainController.setDialog(true, "Report succesfully exported to WorkBook");
             }
+            workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
 
     private ArrayList<String> stringToListNode(String items, String field) {
         ArrayList<String> stringList = new ArrayList<>();

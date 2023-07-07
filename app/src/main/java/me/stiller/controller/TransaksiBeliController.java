@@ -164,6 +164,7 @@ public class TransaksiBeliController implements Initializable {
     private void initializeListener() {
         fTotal.setVisible(false);
         list.addListener((ListChangeListener<DetailPembelian>) c -> {
+            dataRepository.setDetailPembelian(list);
             if (!c.getList().isEmpty()) iItemPrice.setText(Strings.EMPTY);
             changeTableView(0);
         });
@@ -282,7 +283,7 @@ public class TransaksiBeliController implements Initializable {
             if (server.insert(pembelian)) {
                 mainController.setDialog(true, "Data successfully saved");
                 list.clear();
-                dataRepository.setPenjualanList(server.retrieveJualData());
+                dataRepository.setPembelianList(server.readPembelian());
                 iOrderId.setText(String.valueOf(server.getLastPembelian()));
                 resetForm();
 

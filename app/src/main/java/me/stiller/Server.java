@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Server {
 
@@ -143,6 +144,7 @@ public class Server {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        Collections.reverse(jualList);
         return jualList;
     }
 
@@ -404,10 +406,15 @@ public class Server {
     }
 
     public boolean delete(Barang barang) {
-        Connection connection = new Server().getConnection();
+        LogManager.getLogger().debug(barang.getItemId());
+        LogManager.getLogger().debug(barang.getItemName());
+        LogManager.getLogger().debug(barang.getItemUnit());
+        LogManager.getLogger().debug(barang.getItemPrice());
+        LogManager.getLogger().debug(barang.getItemStock());
+        LogManager.getLogger().debug(barang.getItemMinStock());
         String sql = "DELETE FROM barang WHERE id = ?";
         try {
-            PreparedStatement statement = connection.prepareStatement(sql);
+            PreparedStatement statement = getConnection().prepareStatement(sql);
             statement.setString(1, barang.getItemId());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {

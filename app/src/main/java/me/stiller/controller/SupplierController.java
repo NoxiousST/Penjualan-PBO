@@ -150,7 +150,6 @@ public class SupplierController implements Initializable {
                             vbox.getChildren().add(l);
                         });
 
-                        vbox.setAlignment(Pos.CENTER);
                         vbox.setSpacing(6);
                         hbox.getChildren().setAll(vbox);
                         hbox.setAlignment(Pos.CENTER);
@@ -308,6 +307,7 @@ public class SupplierController implements Initializable {
                                 itemsPopup.hide();
                             }));
                         }
+                        table.refresh();
                     });
 
                     listMenu.setOnMouseClicked(e -> Platform.runLater(() -> {

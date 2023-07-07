@@ -8,6 +8,8 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -136,9 +138,10 @@ public class BarangController implements Initializable {
                 listMenu.getStyleClass().add("popup-list");
                 listMenu.getItems().setAll(new Label("Edit"), new Label("Delete"));
                 listMenu.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-                listMenu.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                listMenu.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
                     Barang barang = getTableRow().getItem();
-                    if (newValue.equals(listMenu.getItems().get(0))) {
+                    log.debug("Value, " + newValue);
+                    if (newValue.intValue() == 0) {
                         table.getSelectionModel().select(getIndex());
                         editSelected = true;
                         if (!table.getColumns().contains(cselect)) table.getColumns().add(0, cselect);
@@ -147,14 +150,17 @@ public class BarangController implements Initializable {
                         btnEdit.getStyleClass().setAll("btn-edit-selected");
                         btnInsert.getStyleClass().setAll("btn-insert");
 
-                    } else if (newValue.equals(listMenu.getItems().get(1))) {
+                    } else if (newValue.intValue() == 1) {
+                        log.debug("Loop Delete?");
                         if (server.delete(barang))
                             mainController.setDialog(true, "Item removed successfully");
                         else
-                            mainController.setDialog(true, "There was an error while removing item");
+                            mainController.setDialog(false, "There was an error while removing item");
                         inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
                         dataRepository.setBarangList(server.readBarang());
                         table.getSelectionModel().clearSelection();
+                        changeTableView(pagination.getCurrentPageIndex());
+                        table.refresh();
                     }
                 });
 
@@ -253,7 +259,7 @@ public class BarangController implements Initializable {
             }
             inputs.forEach(input -> input.textProperty().set(Strings.EMPTY));
             dataRepository.setBarangList(server.readBarang());
-            changeTableView(0);
+            changeTableView(pagination.getCurrentPageIndex());
         });
 
         btnCancel.setOnMouseClicked(event -> {

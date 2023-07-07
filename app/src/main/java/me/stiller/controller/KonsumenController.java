@@ -163,10 +163,11 @@ public class KonsumenController implements Initializable {
                         if (server.delete(konsumen))
                             mainController.setDialog(true, "Customer removed successfully");
                         else
-                            mainController.setDialog(true, "There was an error while removing cutomer");
+                            mainController.setDialog(false, "There was an error while removing cutomer");
                         dataRepository.setKonsumenList(server.readKonsumen());
-                        changeTableView(0);
                         table.getSelectionModel().clearSelection();
+                        changeTableView(pagination.getCurrentPageIndex());
+                        table.refresh();
                     }
                 });
 

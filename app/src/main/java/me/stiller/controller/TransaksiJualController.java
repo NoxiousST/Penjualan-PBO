@@ -163,6 +163,7 @@ public class TransaksiJualController implements Initializable {
     private void initializeListener() {
         fTotal.setVisible(false);
         list.addListener((ListChangeListener<Jual.DJual>) c -> {
+            dataRepository.setTransaksiJualList(list);
             boolean isEmpty = c.getList().isEmpty();
             if (isEmpty) iItemPrice.setText(Strings.EMPTY);
             changeTableView(0);
@@ -289,6 +290,7 @@ public class TransaksiJualController implements Initializable {
                     server.update(barang);
                 });
                 list.clear();
+
             } else
                 mainController.setDialog(false, "Failed to save data");
 
